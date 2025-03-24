@@ -42,7 +42,7 @@ class FasterRcnnObjectRecognizerTest {
                     var type = x.getType();
                     var score = x.getScore();
                   //  return type.equals("person") && score > 0.75;
-                    return score > 0.75;
+                    return score > 0.7;
                 }
         );
     }

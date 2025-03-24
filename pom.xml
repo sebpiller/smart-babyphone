@@ -15,12 +15,15 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 <!--        <tensorflow.version>1.0.0-rc.2</tensorflow.version>-->
         <tensorflow.version>1.0.0</tensorflow.version>
+
+        <argLine/>
+        <java.version>17</java.version>
     </properties>
 
     <build>
@@ -54,7 +57,22 @@
                 </configuration>
             </plugin>
 
-
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -95,12 +113,6 @@
             <version>4.6.0-1.5.8</version>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.apache.camel.springboot</groupId>-->
-<!--            <artifactId>camel-weka-starter</artifactId>-->
-<!--            <version>4.0.0-RC1</version>-->
-<!--        </dependency>-->
-
         <dependency>
             <groupId>org.tensorflow</groupId>
             <artifactId>tensorflow-core-platform</artifactId>
@@ -112,8 +124,7 @@
             <version>${tensorflow.version}</version>
         </dependency>
 
-
     </dependencies>
-    
-    
+
+
 </project>
