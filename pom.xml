@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-parent</artifactId>
-        <version>3.4.3</version>
+        <version>3.4.4</version>
     </parent>
 
     <groupId>ch.sebpiller.babyphone</groupId>
@@ -46,7 +46,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>3.4.3</version>
                 <configuration>
 <!--                    <systemPropertyVariables>-->
 <!--                        <java.util.logging.manager>org.apache.logging.log4j.jul.LogManager</java.util.logging.manager>-->
@@ -67,12 +66,12 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
-                </configuration>
-            </plugin>
+<!--            <plugin>-->
+<!--                <artifactId>maven-surefire-plugin</artifactId>-->
+<!--                <configuration>-->
+<!--                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 
