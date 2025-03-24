@@ -18,6 +18,6 @@ public class Detector {
     private String objectMinSize = "15%";
 
     public int minSizeAdaptedFor(int v) {
-        return Math.clamp((int) (v * Float.parseFloat(objectMinSize.replace("%", "")) / 100), 0, Integer.MAX_VALUE);
+        return Math.max(0, Math.min((int) (v * Float.parseFloat(objectMinSize.replace("%", "")) / 100), Integer.MAX_VALUE));
     }
 }
