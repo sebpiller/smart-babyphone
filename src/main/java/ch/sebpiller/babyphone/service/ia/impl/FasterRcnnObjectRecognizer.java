@@ -29,7 +29,7 @@ import java.util.function.Predicate;
 @Service
 public class FasterRcnnObjectRecognizer implements ObjectRecognizer, InitializingBean {
 
-    public static final String MODELS = "/home/seb/IdeaProjects/smart-babyphone/src/main/resources/models";
+    public static final String MODELS = "/home/seb/models";
     public static final String HIGH_RES = MODELS + "/faster_rcnn_inception_resnet_v2_1024x1024";
     public static final String LOW_RES = MODELS + "/faster-rcnn-inception-resnet-v2-tensorflow2-640x640-v1";
     public static final String MODEL_PATH = HIGH_RES;
@@ -251,8 +251,6 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
     }
 
     private void writeF(String outputPath, Ops tf, Placeholder<TFloat32> boxesPlaceHolder, TFloat32 boxes, Placeholder<TString> outImagePathPlaceholder, EncodeJpeg encodedImage) {
-        var x = encodedImage.asOutput().asOutput().asTensor().asBytes();
-
         var writeFile = tf.io.writeFile(outImagePathPlaceholder, encodedImage);
         log.info("Writing output image to: {}", outputPath);
         session.runner().feed(outImagePathPlaceholder, TString.scalarOf(outputPath))
