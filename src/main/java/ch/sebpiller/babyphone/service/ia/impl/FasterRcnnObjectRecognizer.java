@@ -1,6 +1,7 @@
 package ch.sebpiller.babyphone.service.ia.impl;
 
 import ch.sebpiller.babyphone.service.ia.ObjectRecognizer;
+import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.tensorflow.op.core.Placeholder;
 import org.tensorflow.op.core.Reshape;
 import org.tensorflow.op.image.DecodeJpeg;
 import org.tensorflow.op.image.EncodeJpeg;
+import org.tensorflow.proto.ConfigProto;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.TString;
 import org.tensorflow.types.TUint8;
@@ -25,6 +27,7 @@ import java.util.function.Predicate;
 /**
  * @see <a href="https://www.kaggle.com/models/tensorflow/faster-rcnn-inception-resnet-v2/tensorFlow2/1024x1024/1">Faster RCNN Resnet Model</a>
  */
+@AutoLog(printArgs = true)
 @Slf4j
 @Service
 public class FasterRcnnObjectRecognizer implements ObjectRecognizer, InitializingBean {
@@ -140,7 +143,7 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
     private Session session;
 
     @Override
-    public DetectionResult detectAndWrite(String imagePath, String outputPath, Predicate<DetectedObject> drawBorderPredicate) {
+    public DetectionResult detectAndWrite(String imagePath, String outputPath, @AutoLog.Ignored Predicate<DetectedObject> drawBorderPredicate) {
         log.info("Starting detection process for image: {}", imagePath);
         var detected = new ArrayList<DetectionResult.Detected>();
         var result = DetectionResult.builder().detected(detected);
@@ -152,10 +155,10 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
         var decodeImage = tf.image.decodeJpeg(readFile.contents(), options);
 
         Shape imageShape;
-        try (var shapeResult = runner.fetch(decodeImage).run()) {
-            imageShape = shapeResult.get(0).shape();
-            log.debug("Image shape: {}", imageShape);
-        }
+        var shapeResult = runner.fetch(decodeImage).run();
+        imageShape = shapeResult.get(0).shape();
+        log.debug("Image shape: {}", imageShape);
+
 
         var imageShapeArray = imageShape.asArray();
         var reshape = tf.reshape(decodeImage,
@@ -166,78 +169,76 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
                 )
         );
 
-        try (var reshapeResult = session.runner().fetch(reshape).run()) {
-            var reshapeTensor = (TUint8) reshapeResult.get(0);
-            var feedDict = new HashMap<String, Tensor>();
-            feedDict.put("input_tensor", reshapeTensor);
-            
-            try (var outputTensorMap = invokeIaModel(feedDict)) {
-                var numDetections = (TFloat32) outputTensorMap.get("num_detections").orElseThrow();
-                var numDetects = (int) numDetections.getFloat(0);
-                log.info("Number of detections found: {}", numDetects);
+        var reshapeResult = session.runner().fetch(reshape).run();
+        var reshapeTensor = (TUint8) reshapeResult.get(0);
+        var feedDict = new HashMap<String, Tensor>();
+        feedDict.put("input_tensor", reshapeTensor);
 
-                if (numDetects <= 0) {
-                    log.warn("No detections were found.");
-                } else {
-                    var detectionBoxes = (TFloat32) outputTensorMap.get("detection_boxes").orElseThrow();
-                    var detectionScores = (TFloat32) outputTensorMap.get("detection_scores").orElseThrow();
-                    var detectionClasses = (TFloat32) outputTensorMap.get("detection_classes").orElseThrow();
-                    var boxArray = new ArrayList<FloatNdArray>();
+        var outputTensorMap = invokeIaModel(feedDict);
+        var numDetections = (TFloat32) outputTensorMap.get("num_detections").orElseThrow();
+        var numDetects = (int) numDetections.getFloat(0);
+        log.info("Number of detections found: {}", numDetects);
 
-                    for (var n = 0; n < numDetects; n++) {
-                        var detectionScore = detectionScores.getFloat(0, n);
-                        var detectionClass = detectionClasses.getFloat(0, n);
-                        var d = cocoTreeMap.get(detectionClass - 1);
-                        var e = detectionBoxes.get(0, n);
-                        log.debug("Detection {}: type={}, score={}", n, d, detectionScore);
-                        detected.add(DetectionResult.Detected.builder().type(d).build());
-                        if (drawBorderPredicate.test(DetectedObject.builder().score(detectionScore).type(d).build())) {
-                            boxArray.add(e);
-                        }
-                    }
-                    
-                    Operand<TFloat32> colors = tf.constant(new float[][]{
-                            {0.9f, 0.3f, 0.3f, 0.0f},
-                            {0.3f, 0.3f, 0.9f, 0.0f},
-                            {0.3f, 0.9f, 0.3f, 0.0f}
-                    });
-                    
-                    var boxesShape = Shape.of(1, boxArray.size(), 4);
-                    try (var boxes = TFloat32.tensorOf(boxesShape)) {
-                        if (!boxArray.isEmpty()) {
-                            boxes.setFloat(1, 0, 0, 0);
-                            var boxCount = 0;
-                            for (var floatNdArray : boxArray) {
-                                boxes.set(floatNdArray, 0, boxCount);
-                                boxCount++;
-                            }
-                        }
-                        
-                        log.info("Drawing bounding boxes on detected objects...");
-                        var scaledImage = tf.math.div(
-                                tf.dtypes.cast(tf.constant(reshapeTensor), TFloat32.class),
-                                tf.constant(255.0f)
-                        );
-                        
-                        var boxesPlaceHolder = tf.placeholder(TFloat32.class, Placeholder.shape(boxesShape));
-                        var boundingBoxOverlay = tf.image.drawBoundingBoxes(scaledImage, boxesPlaceHolder, colors);
+        if (numDetects <= 0) {
+            log.warn("No detections were found.");
+        } else {
+            var detectionBoxes = (TFloat32) outputTensorMap.get("detection_boxes").orElseThrow();
+            var detectionScores = (TFloat32) outputTensorMap.get("detection_scores").orElseThrow();
+            var detectionClasses = (TFloat32) outputTensorMap.get("detection_classes").orElseThrow();
+            var boxArray = new ArrayList<FloatNdArray>();
 
-                        var rescaledOverlay = tf.math.mul(boundingBoxOverlay, tf.constant(255.0f));
-                        var reshapedOverlay = tf.reshape(
-                                rescaledOverlay,
-                                tf.array(
-                                        imageShapeArray[0],
-                                        imageShapeArray[1],
-                                        imageShapeArray[2]
-                                )
-                        );
-                        var res = encodeAndWrite(outputPath, tf, reshapedOverlay, boxesPlaceHolder, boxes);
-                      result.image(res);
-                    }
+            for (var n = 0; n < numDetects; n++) {
+                var detectionScore = detectionScores.getFloat(0, n);
+                var detectionClass = detectionClasses.getFloat(0, n);
+                var d = cocoTreeMap.get(detectionClass - 1);
+                var e = detectionBoxes.get(0, n);
+                log.debug("Detection {}: type={}, score={}", n, d, detectionScore);
+                detected.add(DetectionResult.Detected.builder().type(d).build());
+                if (drawBorderPredicate.test(DetectedObject.builder().score(detectionScore).type(d).build())) {
+                    boxArray.add(e);
                 }
             }
+
+            Operand<TFloat32> colors = tf.constant(new float[][]{
+                    {0.9f, 0.3f, 0.3f, 0.0f},
+                    {0.3f, 0.3f, 0.9f, 0.0f},
+                    {0.3f, 0.9f, 0.3f, 0.0f}
+            });
+
+            var boxesShape = Shape.of(1, boxArray.size(), 4);
+            try (var boxes = TFloat32.tensorOf(boxesShape)) {
+                if (!boxArray.isEmpty()) {
+                    boxes.setFloat(1, 0, 0, 0);
+                    var boxCount = 0;
+                    for (var floatNdArray : boxArray) {
+                        boxes.set(floatNdArray, 0, boxCount);
+                        boxCount++;
+                    }
+                }
+
+                log.info("Drawing bounding boxes on detected objects...");
+                var scaledImage = tf.math.div(
+                        tf.dtypes.cast(tf.constant(reshapeTensor), TFloat32.class),
+                        tf.constant(255.0f)
+                );
+
+                var boxesPlaceHolder = tf.placeholder(TFloat32.class, Placeholder.shape(boxesShape));
+                var boundingBoxOverlay = tf.image.drawBoundingBoxes(scaledImage, boxesPlaceHolder, colors);
+
+                var rescaledOverlay = tf.math.mul(boundingBoxOverlay, tf.constant(255.0f));
+                var reshapedOverlay = tf.reshape(
+                        rescaledOverlay,
+                        tf.array(
+                                imageShapeArray[0],
+                                imageShapeArray[1],
+                                imageShapeArray[2]
+                        )
+                );
+                var res = encodeAndWrite(outputPath, tf, reshapedOverlay, boxesPlaceHolder, boxes);
+                result.image(res);
+            }
         }
-        
+
         log.info("Detection process completed for image: {}", imagePath);
         return result.build();
     }
@@ -274,8 +275,25 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
             cocoTreeMap.put(cocoCount, cocoLabel);
             cocoCount++;
         }
+
+
         graph = new Graph();
-        session = new Session(graph);
+        session = new Session(graph, ConfigProto.newBuilder()
+                .addDeviceFilters("/device:GPU:0")
+                .setLogDevicePlacement(true)
+                .setAllowSoftPlacement(true)
+//                .setGraphOptions(GraphOptions.newBuilder()
+//                        .setOptimizerOptions(OptimizerOptions.newBuilder()
+//                            //    .setGlobalJitLevel(OptimizerOptions.GlobalJitLevel.ON_2)
+//                                .build())
+//                        .build())
+//                .setGpuOptions(GPUOptions.newBuilder()
+//                        .setForceGpuCompatible(true)
+//                                .setAllowGrowth(true)
+//                        //.setExperimental(GPUOptions.Experimental.newBuilder().build())
+//                        .build())
+                .build());
+
     }
 
 

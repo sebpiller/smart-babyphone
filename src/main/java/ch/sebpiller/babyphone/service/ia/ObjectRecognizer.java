@@ -6,11 +6,8 @@ import lombok.Data;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
 import org.tensorflow.op.image.EncodeJpeg;
-import org.tensorflow.proto.Summary;
 
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -35,11 +32,11 @@ public interface ObjectRecognizer {
         }
 
         Mat asOpenCvMat() {
-            if (image == null ) {
+            if (image == null) {
                 return new Mat();
             }
-            
-            
+
+
             return Imgcodecs.imdecode(new MatOfByte(), Imgcodecs.IMREAD_UNCHANGED);
         }
 

@@ -1,8 +1,8 @@
 package ch.sebpiller.babyphone.service.ia;
 
-import ch.sebpiller.babyphone.aop.AutoLog;
 import ch.sebpiller.babyphone.config.properties.BabyPhoneProperties;
 import ch.sebpiller.babyphone.config.properties.Detector;
+import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +12,6 @@ import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.objdetect.HOGDescriptor;
 import org.opencv.objdetect.Objdetect;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.HashMap;
