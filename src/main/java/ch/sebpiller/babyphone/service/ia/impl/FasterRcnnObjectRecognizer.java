@@ -1,7 +1,6 @@
 package ch.sebpiller.babyphone.service.ia.impl;
 
 import ch.sebpiller.babyphone.service.ia.ObjectRecognizer;
-import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +14,7 @@ import org.tensorflow.op.core.Placeholder;
 import org.tensorflow.op.core.Reshape;
 import org.tensorflow.op.image.DecodeJpeg;
 import org.tensorflow.op.image.EncodeJpeg;
-import org.tensorflow.proto.ConfigProto;
+import org.tensorflow.proto.framework.ConfigProto;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.TString;
 import org.tensorflow.types.TUint8;
@@ -27,7 +26,7 @@ import java.util.function.Predicate;
 /**
  * @see <a href="https://www.kaggle.com/models/tensorflow/faster-rcnn-inception-resnet-v2/tensorFlow2/1024x1024/1">Faster RCNN Resnet Model</a>
  */
-@AutoLog(printArgs = true)
+//@AutoLog(printArgs = true)
 @Slf4j
 @Service
 public class FasterRcnnObjectRecognizer implements ObjectRecognizer, InitializingBean {
@@ -143,7 +142,7 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
     private Session session;
 
     @Override
-    public DetectionResult detectAndWrite(String imagePath, String outputPath, @AutoLog.Ignored Predicate<DetectedObject> drawBorderPredicate) {
+    public DetectionResult detectAndWrite(String imagePath, String outputPath, Predicate<DetectedObject> drawBorderPredicate) {
         log.info("Starting detection process for image: {}", imagePath);
         var detected = new ArrayList<DetectionResult.Detected>();
         var result = DetectionResult.builder().detected(detected);
@@ -175,16 +174,16 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
         feedDict.put("input_tensor", reshapeTensor);
 
         var outputTensorMap = invokeIaModel(feedDict);
-        var numDetections = (TFloat32) outputTensorMap.get("num_detections").orElseThrow();
+        var numDetections = (TFloat32) outputTensorMap.get("num_detections");
         var numDetects = (int) numDetections.getFloat(0);
         log.info("Number of detections found: {}", numDetects);
 
         if (numDetects <= 0) {
             log.warn("No detections were found.");
         } else {
-            var detectionBoxes = (TFloat32) outputTensorMap.get("detection_boxes").orElseThrow();
-            var detectionScores = (TFloat32) outputTensorMap.get("detection_scores").orElseThrow();
-            var detectionClasses = (TFloat32) outputTensorMap.get("detection_classes").orElseThrow();
+            var detectionBoxes = (TFloat32) outputTensorMap.get("detection_boxes");
+            var detectionScores = (TFloat32) outputTensorMap.get("detection_scores");
+            var detectionClasses = (TFloat32) outputTensorMap.get("detection_classes");
             var boxArray = new ArrayList<FloatNdArray>();
 
             for (var n = 0; n < numDetects; n++) {
@@ -259,7 +258,7 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
                 .addTarget(writeFile).run();
     }
 
-    private Result invokeIaModel(Map<String, Tensor> input) {
+    private Map<String, Tensor> invokeIaModel(Map<String, Tensor> input) {
         var startTime = System.currentTimeMillis();
         var result = model.function("serving_default").call(input);
         var endTime = System.currentTimeMillis();

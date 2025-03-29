@@ -2,7 +2,6 @@ package ch.sebpiller.babyphone.service.ia;
 
 import ch.sebpiller.babyphone.config.properties.BabyPhoneProperties;
 import ch.sebpiller.babyphone.config.properties.Detector;
-import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +19,6 @@ import java.util.Objects;
 
 //@Service
 @Slf4j
-@AutoLog
 @RequiredArgsConstructor
 @Deprecated
 // OpenCV implem

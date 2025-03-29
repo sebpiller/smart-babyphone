@@ -2,7 +2,6 @@ package ch.sebpiller.babyphone.service.rtsp;
 
 import ch.sebpiller.babyphone.config.properties.RtspStreamProperties;
 import ch.sebpiller.babyphone.service.ia.RecognitionService;
-import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.opencv.core.Mat;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
-@AutoLog
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -23,7 +21,6 @@ public class ScheduledFetchRtspImage {
 
     private Mat lastFrame;
 
-    @AutoLog
     @Scheduled(fixedRate = 10, timeUnit = TimeUnit.SECONDS)
     public void captureAndAnalyzeCurrentImage() {
         long v = System.currentTimeMillis();
