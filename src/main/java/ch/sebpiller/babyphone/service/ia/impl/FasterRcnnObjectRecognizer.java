@@ -143,6 +143,25 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
 
     @Override
     public DetectionResult detectAndWrite(String imagePath, String outputPath, Predicate<DetectedObject> drawBorderPredicate) {
+        graph = new Graph();
+        session = new Session(graph, ConfigProto.newBuilder()
+                .addDeviceFilters("/device:GPU:0")
+                .setLogDevicePlacement(true)
+                .setAllowSoftPlacement(true)
+//                .setGraphOptions(GraphOptions.newBuilder()
+//                        .setOptimizerOptions(OptimizerOptions.newBuilder()
+//                            //    .setGlobalJitLevel(OptimizerOptions.GlobalJitLevel.ON_2)
+//                                .build())
+//                        .build())
+//                .setGpuOptions(GPUOptions.newBuilder()
+//                        .setForceGpuCompatible(true)
+//                                .setAllowGrowth(true)
+//                        //.setExperimental(GPUOptions.Experimental.newBuilder().build())
+//                        .build())
+                .build());
+
+
+
         log.info("Starting detection process for image: {}", imagePath);
         var detected = new ArrayList<DetectionResult.Detected>();
         var result = DetectionResult.builder().detected(detected);
@@ -274,25 +293,6 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
             cocoTreeMap.put(cocoCount, cocoLabel);
             cocoCount++;
         }
-
-
-        graph = new Graph();
-        session = new Session(graph, ConfigProto.newBuilder()
-                .addDeviceFilters("/device:GPU:0")
-                .setLogDevicePlacement(true)
-                .setAllowSoftPlacement(true)
-//                .setGraphOptions(GraphOptions.newBuilder()
-//                        .setOptimizerOptions(OptimizerOptions.newBuilder()
-//                            //    .setGlobalJitLevel(OptimizerOptions.GlobalJitLevel.ON_2)
-//                                .build())
-//                        .build())
-//                .setGpuOptions(GPUOptions.newBuilder()
-//                        .setForceGpuCompatible(true)
-//                                .setAllowGrowth(true)
-//                        //.setExperimental(GPUOptions.Experimental.newBuilder().build())
-//                        .build())
-                .build());
-
     }
 
 

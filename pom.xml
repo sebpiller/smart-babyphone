@@ -19,7 +19,6 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!--        <tensorflow.version>1.0.0-rc.2</tensorflow.version>-->
         <tensorflow.version>1.0.0</tensorflow.version>
 
         <argLine/>
@@ -60,6 +59,10 @@
         <plugins>
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -113,6 +116,13 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.11.4</version>
+            <scope>test</scope>
+        </dependency>
+
 
         <dependency>
             <groupId>org.bytedeco</groupId>
@@ -128,6 +138,7 @@
 
 
     </dependencies>
+
 
 
 </project>
