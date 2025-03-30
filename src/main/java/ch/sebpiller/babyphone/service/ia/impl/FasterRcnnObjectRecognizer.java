@@ -14,7 +14,7 @@ import org.tensorflow.op.core.Placeholder;
 import org.tensorflow.op.core.Reshape;
 import org.tensorflow.op.image.DecodeJpeg;
 import org.tensorflow.op.image.EncodeJpeg;
-import org.tensorflow.proto.framework.ConfigProto;
+import org.tensorflow.proto.ConfigProto;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.TString;
 import org.tensorflow.types.TUint8;
@@ -138,14 +138,13 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
     };
     private final SavedModelBundle model = SavedModelBundle.load(Objects.requireNonNull(Path.of(MODEL_PATH)).toString(), "serve");
     private TreeMap<Float, String> cocoTreeMap;
-    private Graph graph;
+    private final Graph graph = new Graph();
     private Session session;
 
     @Override
     public DetectionResult detectAndWrite(String imagePath, String outputPath, Predicate<DetectedObject> drawBorderPredicate) {
-        graph = new Graph();
         session = new Session(graph, ConfigProto.newBuilder()
-                .addDeviceFilters("/device:GPU:0")
+               // .addDeviceFilters("/device:GPU:0")
                 .setLogDevicePlacement(true)
                 .setAllowSoftPlacement(true)
 //                .setGraphOptions(GraphOptions.newBuilder()
@@ -166,6 +165,7 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
         var detected = new ArrayList<DetectionResult.Detected>();
         var result = DetectionResult.builder().detected(detected);
         var tf = Ops.create(graph);
+
         var fileName = tf.constant(imagePath);
         var readFile = tf.io.readFile(fileName);
         var runner = session.runner();
@@ -176,7 +176,6 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
         var shapeResult = runner.fetch(decodeImage).run();
         imageShape = shapeResult.get(0).shape();
         log.debug("Image shape: {}", imageShape);
-
 
         var imageShapeArray = imageShape.asArray();
         var reshape = tf.reshape(decodeImage,
@@ -193,16 +192,16 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
         feedDict.put("input_tensor", reshapeTensor);
 
         var outputTensorMap = invokeIaModel(feedDict);
-        var numDetections = (TFloat32) outputTensorMap.get("num_detections");
+        var numDetections = (TFloat32) outputTensorMap.get("num_detections").orElseThrow();
         var numDetects = (int) numDetections.getFloat(0);
         log.info("Number of detections found: {}", numDetects);
 
         if (numDetects <= 0) {
             log.warn("No detections were found.");
         } else {
-            var detectionBoxes = (TFloat32) outputTensorMap.get("detection_boxes");
-            var detectionScores = (TFloat32) outputTensorMap.get("detection_scores");
-            var detectionClasses = (TFloat32) outputTensorMap.get("detection_classes");
+            var detectionBoxes = (TFloat32) outputTensorMap.get("detection_boxes").orElseThrow();
+            var detectionScores = (TFloat32) outputTensorMap.get("detection_scores").orElseThrow();
+            var detectionClasses = (TFloat32) outputTensorMap.get("detection_classes").orElseThrow();
             var boxArray = new ArrayList<FloatNdArray>();
 
             for (var n = 0; n < numDetects; n++) {
@@ -277,7 +276,7 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
                 .addTarget(writeFile).run();
     }
 
-    private Map<String, Tensor> invokeIaModel(Map<String, Tensor> input) {
+    private Result invokeIaModel(Map<String, Tensor> input) {
         var startTime = System.currentTimeMillis();
         var result = model.function("serving_default").call(input);
         var endTime = System.currentTimeMillis();

@@ -132,10 +132,22 @@
 
         <dependency>
             <groupId>org.tensorflow</groupId>
+            <artifactId>tensorflow-core-platform</artifactId>
+            <version>${tensorflow.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tensorflow</groupId>
+            <artifactId>tensorflow-framework</artifactId>
+            <version>${tensorflow.version}</version>
+        </dependency>
+
+<!--
+        <dependency>
+            <groupId>org.tensorflow</groupId>
             <artifactId>tensorflow-core-platform-mkl-gpu</artifactId>
             <version>0.3.3</version>
         </dependency>
-
+-->
 
     </dependencies>
 

@@ -12,8 +12,14 @@ Then add the library to your java lib path:
 java ... -Djava.library.path=/usr/lib/jni ...
 ```
 
-
 You may need to adapt the Maven lib version to match the version of opencv installed on your system.
+
+# Raspberry Pi AI HAT+
+
+```shell
+sudo apt install hailo-all
+hailortcli fw-control identify # check
+```
 
 # Tensorflow
 
