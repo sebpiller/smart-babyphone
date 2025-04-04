@@ -14,6 +14,18 @@ java ... -Djava.library.path=/usr/lib/jni ...
 
 You may need to adapt the Maven lib version to match the version of opencv installed on your system.
 
+# Jython
+
+```shell
+sudo apt install jython -y
+curl -O http://peak.telecommunity.com/dist/ez_setup.py
+jython ez_setup.py
+```
+
+```shell
+sudo /usr/bin/jython2.5.2b1/bin/pip install bottle
+```
+
 # Raspberry Pi AI HAT+
 
 ```shell
@@ -23,7 +35,7 @@ hailortcli fw-control identify # check
 
 # Tensorflow
 
-## NVIDIA 
+## NVIDIA
 
 Install nvidia toolkit for tensorflow GPU support
 
