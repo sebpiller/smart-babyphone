@@ -1,0 +1,67 @@
+spring:
+  application:
+    name: BabyphoneApp
+
+logging:
+  level:
+    root: info
+    ch.sebpiller: debug
+
+
+
+baby-phone:
+
+  rtsp-stream:
+    host: 192.168.1.247
+    #path: /h265Preview_01_sub
+    path: /h265Preview_01_main
+    user: admin
+    pass: adminadmin1234
+
+  detectors:
+    #    - name: front-alt
+    #      file: /haarcascades/haarcascade_frontalface_alt.xml
+    #    - name: front-alt2
+    #      file: /haarcascades/haarcascade_frontalface_alt2.xml
+    - name: low
+      file: /haarcascades/haarcascade_lowerbody.xml
+      object-min-size: 5%
+    - name: top
+      file: /haarcascades/haarcascade_upperbody.xml
+      object-min-size: 8%
+    - name: body
+      file: /haarcascades/haarcascade_fullbody.xml
+      object-min-size: 5%
+    - name: face
+      file: /haarcascades/haarcascade_frontalface_default.xml
+      object-min-size: 5%
+    - name: face-tree
+      file: /haarcascades/haarcascade_frontalface_alt_tree.xml
+      object-min-size: 5%
+    - name: profile
+      file: /haarcascades/haarcascade_profileface.xml
+      object-min-size: 10%
+    #    - name: eye
+    #      file: /haarcascades/haarcascade_eye.xml
+    #      object-min-size: 5%
+    #    - name: eye-glasses
+    #      file: /haarcascades/haarcascade_eye_tree_eyeglasses.xml
+    #      object-min-size: 5%
+    - name: R-eye
+      file: /haarcascades/haarcascade_righteye_2splits.xml
+      object-min-size: 5%
+    - name: L-eye
+      file: /haarcascades/haarcascade_lefteye_2splits.xml
+      object-min-size: 5%
+    #    - name: smile FIXME does not work well
+    #      file: /haarcascades/haarcascade_smile.xml
+    #      object-min-size: 20%
+    #    - name: cat
+    #      file: /haarcascades/haarcascade_frontalcatface.xml
+    - name: cat
+      file: /haarcascades/haarcascade_frontalcatface_extended.xml
+      object-min-size: 5%
+  #    - name: plate-num
+  #      file: /haarcascades/haarcascade_russian_plate_number.xml
+  #    - name: license-plate
+  #      file: /haarcascades/haarcascade_license_plate_rus_16stages.xml
