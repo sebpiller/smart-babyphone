@@ -1,4 +1,4 @@
-package ch.sebpiller.babyphone.controller;
+package ch.sebpiller.babyphone.rest.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

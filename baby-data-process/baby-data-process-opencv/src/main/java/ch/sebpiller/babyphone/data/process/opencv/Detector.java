@@ -1,9 +1,12 @@
 package ch.sebpiller.babyphone.data.process.opencv;
 
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.springframework.validation.annotation.Validated;
+
+import java.nio.file.Path;
 
 @Validated
 @Data
@@ -11,8 +14,8 @@ public class Detector {
     @NotEmpty
     private String name;
 
-    @NotEmpty
-    private String file;
+    @NotNull
+    private Path file;
 
     @Pattern(regexp = "\\d+%")
     private String objectMinSize = "15%";

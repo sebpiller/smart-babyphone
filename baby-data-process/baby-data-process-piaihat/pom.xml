@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>ch.sebpiller.babyphone</groupId>
-        <artifactId>smart-babyphone</artifactId>
+        <artifactId>baby-data-process</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>baby-rest-api</artifactId>
+    <artifactId>baby-data-process-piaihat</artifactId>
     <dependencies>
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-        </dependency>
-        <dependency>
             <groupId>ch.sebpiller.babyphone</groupId>
-            <artifactId>baby-data-fetch</artifactId>
+            <artifactId>baby-data-process-api</artifactId>
         </dependency>
     </dependencies>
 

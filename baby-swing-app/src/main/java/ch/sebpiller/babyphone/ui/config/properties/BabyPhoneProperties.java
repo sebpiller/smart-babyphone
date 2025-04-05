@@ -1,4 +1,4 @@
-package ch.sebpiller.babyphone.ui.swing.properties;
+package ch.sebpiller.babyphone.ui.config.properties;
 
 
 import ch.sebpiller.babyphone.data.process.opencv.Detector;

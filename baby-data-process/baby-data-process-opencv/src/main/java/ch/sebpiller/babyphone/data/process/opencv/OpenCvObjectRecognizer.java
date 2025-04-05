@@ -5,23 +5,32 @@ import ch.sebpiller.babyphone.detection.DetectionResult;
 import ch.sebpiller.babyphone.detection.ObjectRecognizer;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.objdetect.HOGDescriptor;
 import org.opencv.objdetect.Objdetect;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.awt.image.DataBufferByte;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
-//@Service
+@ToString(exclude = "classifiers")
+@Lazy
+@Service
 @Slf4j
 @RequiredArgsConstructor
-// OpenCV implem
-public class RecognitionService implements InitializingBean, ObjectRecognizer {
+@ConditionalOnMissingBean
+public class OpenCvObjectRecognizer implements ObjectRecognizer {
     public static final Scalar BORDER = new Scalar(100, 255, 100);
     public static final Scalar BLACK = new Scalar(0, 0, 0);
 
@@ -29,36 +38,19 @@ public class RecognitionService implements InitializingBean, ObjectRecognizer {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
 
-    private Map<Detector, CascadeClassifier> classifiers;
-
-    @Override
-    public void afterPropertiesSet() {
-        var x = new HashMap<Detector, CascadeClassifier>();
-        for (var detector : classifiers.entrySet()) {
-            x.put(detector.getKey(), new CascadeClassifier(Objects.requireNonNull(getClass().getResource(detector.getKey().getFile())).getPath()));
-        }
-        classifiers = Collections.unmodifiableMap(x);
-    }
+    private final Map<Detector, CascadeClassifier> classifiers;
 
     @SneakyThrows
-    public Mat annotateImage(Mat frame) {
-// remove background ?
-//        var filter = Video.createBackgroundSubtractorMOG2(1, 30, true);
-//        var noBackgroundFrame = new Mat();
-//        filter.apply(frame, noBackgroundFrame);
-//        Imgcodecs.imwrite("no-background.jpg", noBackgroundFrame);
+    public List<Detected> findDetected(Mat frame) {
+        var l = new ArrayList<Detected>();
 
-        var frameCopy = frame;
-        //  Imgproc.resize(frame, frameCopy, new Size(640, 480));
+        var factory = 5d;
 
-        log.debug("Converting frame to grayscale.");
+        Imgproc.resize(frame, frame, new Size(), 1d / factory, 1d / factory, Imgproc.INTER_AREA);
+
         var grayFrame = new Mat();
         Imgproc.cvtColor(frame, grayFrame, Imgproc.COLOR_BGR2GRAY);
-
-        log.debug("Equalizing histogram of the grayscale frame.");
         Imgproc.equalizeHist(grayFrame, grayFrame);
-
-        //detectWithHOG(grayFrame, frameCopy);
 
         for (var e : classifiers.entrySet()) {
             var k = e.getKey();
@@ -70,22 +62,21 @@ public class RecognitionService implements InitializingBean, ObjectRecognizer {
                     found,
                     1.1, // ?
                     5, // ?
-                    Objdetect.CASCADE_SCALE_IMAGE, //| Objdetect.CASCADE_DO_CANNY_PRUNING ,//| Objdetect.CASCADE_FIND_BIGGEST_OBJECT, // ?
+                    Objdetect.CASCADE_SCALE_IMAGE | Objdetect.CASCADE_DO_CANNY_PRUNING | Objdetect.CASCADE_FIND_BIGGEST_OBJECT, // ?
                     new Size(k.minSizeAdaptedFor(grayFrame.cols()), k.minSizeAdaptedFor(grayFrame.rows())),
                     grayFrame.size());
 
-            var f = found.toArray();
-            log.debug("Number of object detected: {}", f.length);
-            var color = new Scalar(Math.random() * 255, Math.random() * 255, Math.random() * 255);
-
-            for (var z : f) {
-                log.debug("  >> Detected {} at [Top-Left: ({}, {}), Bottom-Right: ({}, {})]", k.getName(), z.tl().x, z.tl().y, z.br().x, z.br().y);
-                Imgproc.rectangle(frameCopy, z.tl(), z.br(), color, 2);
-                Imgproc.putText(frameCopy, k.getName(), z.tl(), Imgproc.FONT_HERSHEY_PLAIN, 2, BLACK);
+            for (var z : found.toArray()) {
+                l.add(new Detected(k.getName(), 1,
+                        (int) (z.x * factory),
+                        (int) (z.y * factory),
+                        (int) (z.width * factory),
+                        (int) (z.height * factory)
+                ));
             }
         }
 
-        return frameCopy;
+        return l;
     }
 
     private void detectWithHOG(Mat grayFrame, Mat frameCopy) {
@@ -106,6 +97,19 @@ public class RecognitionService implements InitializingBean, ObjectRecognizer {
 
     @Override
     public DetectionResult detectAndWrite(BufferedImage image, Optional<String> outputPath, Predicate<Detected> p) {
-        return null;
+        var matImage = convertBufferedImageToMat(image);
+
+        return DetectionResult.builder()
+                .image(image)
+                .detected(findDetected(matImage).stream().sorted().toList())
+                .build();
+    }
+
+    private Mat convertBufferedImageToMat(BufferedImage image) {
+        var type = image.getType() == BufferedImage.TYPE_BYTE_GRAY ? org.opencv.core.CvType.CV_8UC1 : org.opencv.core.CvType.CV_8UC3;
+        var mat = new Mat(image.getHeight(), image.getWidth(), type);
+        var data = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+        mat.put(0, 0, data);
+        return mat;
     }
 }

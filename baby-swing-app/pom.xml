@@ -13,35 +13,23 @@
 
     <dependencies>
         <dependency>
-            <groupId>ch.sebpiller.babyphone</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>baby-data-fetch</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>ch.sebpiller.babyphone</groupId>
-            <artifactId>baby-data-process-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>ch.sebpiller.babyphone</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>baby-data-process-opencv</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>baby-data-process-tf</artifactId>
         </dependency>
         <dependency>
             <groupId>ch.sebpiller.babyphone</groupId>
-            <artifactId>baby-data-process-tf</artifactId>
+            <artifactId>baby-data-process-piaihat</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>ch.sebpiller.babyphone</groupId>-->
-        <!--            <artifactId>baby-data-process-tf</artifactId>-->
-        <!--            <version>1.0-SNAPSHOT</version>-->
-        <!--            <scope>compile</scope>-->
-        <!--        </dependency>-->
     </dependencies>
 
 

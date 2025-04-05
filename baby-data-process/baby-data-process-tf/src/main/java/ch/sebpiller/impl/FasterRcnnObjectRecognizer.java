@@ -3,24 +3,19 @@ package ch.sebpiller.impl;
 import ch.sebpiller.babyphone.detection.Detected;
 import ch.sebpiller.babyphone.detection.DetectionResult;
 import ch.sebpiller.babyphone.detection.ObjectRecognizer;
+import jakarta.annotation.PostConstruct;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import org.tensorflow.*;
-import org.tensorflow.ndarray.FloatNdArray;
 import org.tensorflow.ndarray.NdArrays;
 import org.tensorflow.op.Ops;
 import org.tensorflow.op.core.Constant;
-import org.tensorflow.op.core.Placeholder;
-import org.tensorflow.op.core.Reshape;
 import org.tensorflow.op.image.DecodeJpeg;
-import org.tensorflow.op.image.EncodeJpeg;
-import org.tensorflow.op.image.ResizeBilinear;
 import org.tensorflow.proto.ConfigProto;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.TString;
 import org.tensorflow.types.TUint8;
-import org.tensorflow.types.family.TNumber;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -36,7 +31,8 @@ import java.util.function.Predicate;
 //@AutoLog(printArgs = true)
 @Slf4j
 @Service
-public class FasterRcnnObjectRecognizer implements ObjectRecognizer, InitializingBean {
+@ToString(exclude = {"session", "graph", "model", "tf", "cocoTreeMap"})
+public class FasterRcnnObjectRecognizer implements ObjectRecognizer {
 
     public static final String MODELS = "/home/seb/models";
     public static final String HIGH_RES = MODELS + "/faster_rcnn_inception_resnet_v2_1024x1024";
@@ -148,9 +144,10 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
         var detected = new ArrayList<Detected>();
         var result = DetectionResult.builder().detected(detected);
 
-
-        var shapeResult = session.runner().fetch(decodeImage).run();
-        var imageShape = shapeResult.get(0).shape();
+        org.tensorflow.ndarray.Shape imageShape;
+        try (var shapeResult = session.runner().fetch(decodeImage).run()) {
+            imageShape = shapeResult.get(0).shape();
+        }
         log.debug("Image shape: {}", imageShape);
 
         var imageShapeArray = imageShape.asArray();
@@ -162,88 +159,47 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
                 )
         );
 
-        var reshapeResult = session.runner().fetch(reshape).run();
-        var reshapeTensor = (TUint8) reshapeResult.get(0);
-        var feedDict = new HashMap<String, Tensor>();
-        feedDict.put("input_tensor", reshapeTensor);
+        try (var reshapeResult = session.runner().fetch(reshape).run()) {
+            try (var reshapeTensor = (TUint8) reshapeResult.get(0);) {
+                var feedDict = new HashMap<String, Tensor>();
+                feedDict.put("input_tensor", reshapeTensor);
 
-        var outputTensorMap = invokeIaModel(feedDict);
-        var numDetections = (TFloat32) outputTensorMap.get("num_detections").orElseThrow();
-        var numDetects = (int) numDetections.getFloat(0);
-        log.info("Number of detections found: {}", numDetects);
+                try (var outputTensorMap = invokeIaModel(feedDict)) {
+                    int numDetects;
+                    try (var numDetections = (TFloat32) outputTensorMap.get("num_detections").orElseThrow()) {
+                        numDetects = (int) numDetections.getFloat(0);
+                    }
+                    log.info("Number of detections found: {}", numDetects);
 
-        if (numDetects <= 0) {
-            log.warn("No detections were found.");
-        } else {
-            var detectionBoxes = (TFloat32) outputTensorMap.get("detection_boxes").orElseThrow();
-            var detectionScores = (TFloat32) outputTensorMap.get("detection_scores").orElseThrow();
-            var detectionClasses = (TFloat32) outputTensorMap.get("detection_classes").orElseThrow();
-            var boxArray = new ArrayList<FloatNdArray>();
+                    if (numDetects <= 0) {
+                        log.warn("No detections were found.");
+                    } else {
+                        try (var detectionBoxes = (TFloat32) outputTensorMap.get("detection_boxes").orElseThrow();
+                             var detectionScores = (TFloat32) outputTensorMap.get("detection_scores").orElseThrow();
+                             var detectionClasses = (TFloat32) outputTensorMap.get("detection_classes").orElseThrow();) {
 
-            for (var n = 0; n < numDetects; n++) {
-                var detectionScore = detectionScores.getFloat(0, n);
-                var detectionClass = detectionClasses.getFloat(0, n);
-                var d = cocoTreeMap.get(detectionClass - 1);
-                var e = detectionBoxes.get(0, n);
+                            for (var n = 0; n < numDetects; n++) {
+                                var detectionScore = detectionScores.getFloat(0, n);
+                                var detectionClass = detectionClasses.getFloat(0, n);
+                                var d = cocoTreeMap.get(detectionClass - 1);
+                                var e = detectionBoxes.get(0, n);
 
-                int x = (int) (e.getFloat(1) * image.getWidth());
-                int y = (int) (e.getFloat(0) * image.getHeight());
-                int width = (int) (e.getFloat(3) * image.getWidth()) - x;
-                int height = (int) (e.getFloat(2) * image.getHeight()) - y;
+                                int x = (int) (e.getFloat(1) * image.getWidth());
+                                int y = (int) (e.getFloat(0) * image.getHeight());
+                                int width = (int) (e.getFloat(3) * image.getWidth()) - x;
+                                int height = (int) (e.getFloat(2) * image.getHeight()) - y;
 
-
-                var t = new Detected(d, detectionScore, x, y, width, height);
-                if (p.test(t)) {
-                    detected.add(t);
+                                var t = new Detected(d, detectionScore, x, y, width, height);
+                                if (p.test(t)) {
+                                    detected.add(t);
+                                }
+                            }
+                        }
+                    }
                 }
             }
-//
-//            Operand<TFloat32> colors = tf.constant(new float[][]{
-//                    {0.9f, 0.3f, 0.3f, 0.0f},
-//                    {0.3f, 0.3f, 0.9f, 0.0f},
-//                    {0.3f, 0.9f, 0.3f, 0.0f}
-//            });
-//
-//            var boxesShape = Shape.of(1, boxArray.size(), 4);
-//            try (var boxes = TFloat32.tensorOf(boxesShape)) {
-//                if (!boxArray.isEmpty()) {
-//                    boxes.setFloat(1, 0, 0, 0);
-//                    var boxCount = 0;
-//                    for (var floatNdArray : boxArray) {
-//                        boxes.set(floatNdArray, 0, boxCount);
-//                        boxCount++;
-//                    }
-//                }
-//
-//                log.info("Drawing bounding boxes on detected objects...");
-//                var scaledImage = tf.math.div(
-//                        tf.dtypes.cast(tf.constant(reshapeTensor), TFloat32.class),
-//                        tf.constant(255.0f)
-//                );
-//
-//                var boxesPlaceHolder = tf.placeholder(TFloat32.class, Placeholder.shape(boxesShape));
-//                var boundingBoxOverlay = tf.image.drawBoundingBoxes(scaledImage, boxesPlaceHolder, colors);
-//
-//                var rescaledOverlay = tf.math.mul(boundingBoxOverlay, tf.constant(255.0f));
-//                var reshapedOverlay = tf.reshape(
-//                        rescaledOverlay,
-//                        tf.array(
-//                                imageShapeArray[0],
-//                                imageShapeArray[1],
-//                                imageShapeArray[2]
-//                        )
-//                );
-//
-//                if (outputPath.isPresent()) {
-//                    encodeAndWrite(outputPath.get(), tf, reshapedOverlay, boxesPlaceHolder, boxes);
-//
-//                }
-//
-//                result.image(image);
-//            }
         }
-
-        return result.build();
+        return result.image(image).build();
     }
 
     private DecodeJpeg toDecodeJpeg(BufferedImage image) {
@@ -259,24 +215,7 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
         Constant<TString> constant = tf.constant(tString);
 
         var options = DecodeJpeg.channels(3L).ratio(8L);
-        var decodeImage = tf.image.decodeJpeg(constant, options);
-        return decodeImage;
-    }
-
-    private EncodeJpeg encodeAndWrite(String outputPath, Ops tf, Reshape<TFloat32> reshapedOverlay, Placeholder<TFloat32> boxesPlaceHolder, TFloat32 boxes) {
-        var outImagePathPlaceholder = tf.placeholder(TString.class);
-        var jpgOptions = EncodeJpeg.quality(100L);
-        var encodedImage = tf.image.encodeJpeg(tf.dtypes.cast(reshapedOverlay, TUint8.class), jpgOptions);
-        writeF(outputPath, tf, boxesPlaceHolder, boxes, outImagePathPlaceholder, encodedImage);
-        return encodedImage;
-    }
-
-    private void writeF(String outputPath, Ops tf, Placeholder<TFloat32> boxesPlaceHolder, TFloat32 boxes, Placeholder<TString> outImagePathPlaceholder, EncodeJpeg encodedImage) {
-        var writeFile = tf.io.writeFile(outImagePathPlaceholder, encodedImage);
-        log.info("Writing output image to: {}", outputPath);
-        session.runner().feed(outImagePathPlaceholder, TString.scalarOf(outputPath))
-                .feed(boxesPlaceHolder, boxes)
-                .addTarget(writeFile).run();
+        return tf.image.decodeJpeg(constant, options);
     }
 
     private Result invokeIaModel(Map<String, Tensor> input) {
@@ -287,8 +226,8 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
         return result;
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
+    @PostConstruct
+    private void postConstruct() {
         cocoTreeMap = new TreeMap<>();
         float cocoCount = 0;
         for (var cocoLabel : cocoLabels) {
@@ -297,44 +236,10 @@ public class FasterRcnnObjectRecognizer implements ObjectRecognizer, Initializin
         }
 
         session = new Session(graph, ConfigProto.newBuilder()
-                // .addDeviceFilters("/device:GPU:0")
-                .setLogDevicePlacement(true)
                 .setAllowSoftPlacement(true)
-//                .setGraphOptions(GraphOptions.newBuilder()
-//                        .setOptimizerOptions(OptimizerOptions.newBuilder()
-//                            //    .setGlobalJitLevel(OptimizerOptions.GlobalJitLevel.ON_2)
-//                                .build())
-//                        .build())
-//                .setGpuOptions(GPUOptions.newBuilder()
-//                        .setForceGpuCompatible(true)
-//                                .setAllowGrowth(true)
-//                        //.setExperimental(GPUOptions.Experimental.newBuilder().build())
-//                        .build())
                 .build());
 
-
         tf = Ops.create(graph);
-    }
-
-    public ResizeBilinear resizeImage(Operand<TNumber> imageTensor) {
-        long[] shape = imageTensor.shape().asArray();
-        float height = shape[shape.length - 2];
-        float width = shape[shape.length - 1];
-        float minSize = Math.min(height, width);
-        float maxSize = Math.max(height, width);
-
-        // Determine the target size based on training mode
-        float size = 320;
-
-        // Calculate scaling factor
-        float scaleFactor = size / minSize;
-
-
-        return tf.image.resizeBilinear(imageTensor, tf.constant(new int[]{
-                (int) Math.round(height * scaleFactor),
-                (int) Math.round(width * scaleFactor)
-        }));
-
     }
 
 }

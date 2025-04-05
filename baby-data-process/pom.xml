@@ -16,6 +16,7 @@
         <module>baby-data-process-api</module>
         <module>baby-data-process-tf</module>
         <module>baby-data-process-opencv</module>
+        <module>baby-data-process-piaihat</module>
     </modules>
 
 </project>
