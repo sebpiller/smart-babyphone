@@ -1,31 +1,25 @@
 package ch.sebpiller.babyphone.ui.service.schedule;
 
-import ch.sebpiller.babyphone.fetch.rtsp.RtspImageSource;
-import ch.sebpiller.babyphone.fetch.rtsp.RtspSoundSource;
+import ch.sebpiller.babyphone.fetch.image.ImageSource;
 import ch.sebpiller.babyphone.ui.swing.MainController;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
+@Lazy
 @RequiredArgsConstructor
 @Service
-public class ScheduledFetchRtspImage {
+public class ScheduledFetchImage {
 
-    private final RtspImageSource streamReader;
-    private final RtspSoundSource soundSource;
-
+    private final ImageSource imageSource;
     private final MainController mainController;
 
     @Scheduled(fixedRate = 80, timeUnit = TimeUnit.MILLISECONDS)
     public void captureNextImage() {
-        log.debug("Fetching new image from RTSP stream.");
-        mainController.receiveRawImage(streamReader.get());
-
-        mainController.receiveRawSound(soundSource.captureClip());
+        mainController.receiveRawImage(imageSource.get());
     }
 
 }

@@ -17,5 +17,11 @@
             <groupId>org.bytedeco</groupId>
             <artifactId>javacv-platform</artifactId>
         </dependency>
+
+        <dependency>
+            <!-- TODO remove this dep -->
+            <groupId>${project.groupId}</groupId>
+            <artifactId>baby-samples-data</artifactId>
+        </dependency>
     </dependencies>
 </project>

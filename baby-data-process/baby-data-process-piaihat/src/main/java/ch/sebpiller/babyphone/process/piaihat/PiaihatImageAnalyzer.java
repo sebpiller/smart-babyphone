@@ -22,7 +22,7 @@ import java.util.function.Predicate;
 @ConditionalOnMissingBean
 public class PiaihatImageAnalyzer implements ImageAnalyzer {
     @Override
-    public DetectionResult detectObjectsOn(BufferedImage image, Predicate<Detected> acceptanceTest) {
+    public DetectionResult detectObjectsOn(BufferedImage image, Predicate<Detected> includeInResult) {
         return DetectionResult.builder()
                 .image(image)
                 .build();

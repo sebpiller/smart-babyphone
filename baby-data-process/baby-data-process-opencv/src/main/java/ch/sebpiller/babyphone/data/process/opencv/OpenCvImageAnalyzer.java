@@ -56,7 +56,7 @@ public class OpenCvImageAnalyzer implements ImageAnalyzer {
     }
 
     @Override
-    public DetectionResult detectObjectsOn(BufferedImage image, Predicate<Detected> acceptanceTest) {
+    public DetectionResult detectObjectsOn(BufferedImage image, Predicate<Detected> includeInResult) {
         var matImage = convertBufferedImageToMat(image);
 
         return DetectionResult.builder()

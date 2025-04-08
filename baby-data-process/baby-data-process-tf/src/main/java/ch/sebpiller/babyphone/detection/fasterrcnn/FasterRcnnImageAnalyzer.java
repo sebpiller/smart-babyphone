@@ -140,7 +140,7 @@ public class FasterRcnnImageAnalyzer implements ImageAnalyzer {
     private Session session;
 
     @Override
-    public DetectionResult detectObjectsOn(BufferedImage image, Predicate<Detected> acceptanceTest) {
+    public DetectionResult detectObjectsOn(BufferedImage image, Predicate<Detected> includeInResult) {
         var decodeJpeg = toDecodeJpeg(image);
 
         var detected = new ArrayList<Detected>();
@@ -186,7 +186,7 @@ public class FasterRcnnImageAnalyzer implements ImageAnalyzer {
                                 var height = (int) (e.getFloat(2) * image.getHeight()) - y;
 
                                 var t = new Detected(d, detectionScore, x, y, width, height);
-                                if (acceptanceTest.test(t)) {
+                                if (includeInResult.test(t)) {
                                     detected.add(t);
                                 }
                             }

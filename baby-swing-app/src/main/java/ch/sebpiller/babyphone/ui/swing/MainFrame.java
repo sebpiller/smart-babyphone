@@ -16,7 +16,11 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static ch.sebpiller.babyphone.detection.sound.ResNetV2AudioClassifier.labels;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,16 +36,35 @@ public class MainFrame extends JFrame {
             var i = image.get();
             if (i != null) {
                 g.drawImage(i, 0, 0, getWidth(), getHeight(), this);
+                log.debug("Image displayed with dimensions: {}x{}", getWidth(), getHeight());
+            } else {
+                log.debug("No image to display.");
             }
         }
     };
     private final JLabel[] detecteds = new JLabel[10];
     private JLabel fps;
     private transient Detected highlight;
+    private BufferedImage soundImage;
+    private JPanel soundImagePanel = new JPanel() {
+        @Override
+        public void paint(Graphics g) {
+            super.paint(g);
+
+            if (soundImage != null) {
+                g.drawImage(soundImage, 0, 0, getWidth(), getHeight(), this);
+                log.debug("Sound image displayed with dimensions: {}x{}", getWidth(), getHeight());
+            } else {
+                log.debug("No sound image to display.");
+            }
+
+        }
+    };
 
     @SneakyThrows
     @PostConstruct
     private void init() {
+        log.info("Initializing MainFrame...");
         SwingUtilities.invokeAndWait(() -> {
             for (var i = 0; i < detecteds.length; i++) {
                 detecteds[i] = new JLabel("");
@@ -55,12 +78,14 @@ public class MainFrame extends JFrame {
                         var detectionResult = controller.getDetectionResult();
                         var detected = detectionResult.getDetected();
                         highlight = finalI < detected.size() ? detected.get(finalI) : null;
+                        log.debug("Mouse entered on detection label: {}", highlight);
                         reannotateImage(detectionResult);
                     }
 
                     @Override
                     public void mouseExited(MouseEvent e) {
                         ((JLabel) e.getSource()).setForeground(defaultColor);
+                        log.debug("Mouse exited from detection label.");
                     }
                 });
             }
@@ -76,6 +101,7 @@ public class MainFrame extends JFrame {
 
             fps = new JLabel("Latency: ?");
             eastPane.add(wrap(fps));
+            log.debug("FPS label initialized.");
 
             var sel = new JComboBox<>();
 
@@ -83,13 +109,21 @@ public class MainFrame extends JFrame {
             xxx.addFirst(null);
             sel.setModel(new DefaultComboBoxModel<>(xxx.toArray()));
             sel.setSelectedItem(controller.getIaProcessingAlgorithm());
-            sel.addActionListener(e -> controller.setIaProcessingAlgorithm((ImageAnalyzer) ((JComboBox<?>) (e.getSource())).getSelectedItem()));
+            sel.addActionListener(e -> {
+                var selectedAlgorithm = (ImageAnalyzer) ((JComboBox<?>) (e.getSource())).getSelectedItem();
+                controller.setIaProcessingAlgorithm(selectedAlgorithm);
+                log.info("Algorithm changed to: {}", selectedAlgorithm);
+            });
 
             eastPane.add(wrap(new JLabel("Algorithm in use:"), sel));
 
             var slider = new JSlider(0, 100, 0);
             slider.setValue((int) (controller.getConfidencyThreshold() * 100));
-            slider.addChangeListener(e -> controller.setConfidencyThreshold((float) (((JSlider) e.getSource()).getValue() / 100d)));
+            slider.addChangeListener(e -> {
+                var newThreshold = (float) (((JSlider) e.getSource()).getValue() / 100d);
+                controller.setConfidencyThreshold(newThreshold);
+                log.info("Confidence threshold adjusted to: {}", newThreshold);
+            });
 
             eastPane.add(wrap(new JLabel("Confidence threshold:"), slider));
 
@@ -99,6 +133,7 @@ public class MainFrame extends JFrame {
                 @Override
                 public void mouseExited(MouseEvent e) {
                     highlight = null;
+                    log.debug("Highlight cleared on mouse exit from detection area.");
                     reannotateImage(controller.getDetectionResult());
                     repaint();
                 }
@@ -108,25 +143,47 @@ public class MainFrame extends JFrame {
             var i = 0;
             for (var d : detecteds) {
                 comp.add(wrap(new JLabel("Detected #" + ++i), d));
+                log.debug("Detection label added: Detected #{}", i);
             }
 
             contentPane.add(eastPane, BorderLayout.EAST);
+            contentPane.add(getSouthPane(), BorderLayout.SOUTH);
+            log.debug("Layout components initialized.");
+
             setDefaultCloseOperation(EXIT_ON_CLOSE);
 
             pack();
             setLocationRelativeTo(null);
-            log.debug("MainFrame initialization complete");
+            log.info("MainFrame initialization complete.");
         });
     }
 
     public void reannotateImage(DetectionResult dr) {
-        image.set(annotateBufferedWithDetection(dr));
+        log.debug("Reannotating image...");
         SwingUtilities.invokeLater(() -> {
-            for (var i = 0; i < detecteds.length; i++) {
-                var x = i < dr.getDetected().size() ? dr.getDetected().get(i) : null;
-                detecteds[i].setText(x != null ? x.type() + " " + ((int) (x.score() * 100)) + "%" : " ");
+            var annotatedImage = annotateBufferedWithDetection(dr);
+            image.set(annotatedImage);
+            if (annotatedImage != null) {
+                log.debug("Annotated image set with detections: {}", dr.getDetected());
+            } else {
+                log.debug("Annotated image is null, no detections found.");
             }
+
+            var i = new AtomicInteger();
+            dr.matched()
+                    .limit(detecteds.length)
+                    .forEach(x -> {
+                        detecteds[i.getAndIncrement()].setText(x.type() + " " + ((int) (x.score() * 100)) + "%");
+                        log.debug("Label updated for detection: {}", x);
+                    });
+
+            for (var ii = i.get(); ii < detecteds.length; ii++) {
+                detecteds[ii].setText("");
+                log.debug("Cleared unused detection label at index: {}", ii);
+            }
+
             repaint();
+            log.debug("Image reannotation complete.");
         });
     }
 
@@ -134,6 +191,35 @@ public class MainFrame extends JFrame {
         var jPanel = new JPanel();
         Arrays.stream(sel).forEach(jPanel::add);
         return jPanel;
+    }
+
+    private JPanel getSouthPane() {
+        log.debug("Initializing south pane...");
+        var p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+        p.add(Box.createHorizontalGlue());
+
+        for (var l : labels) {
+            var pp = new JPanel();
+            pp.setLayout(new BorderLayout());
+            pp.add(new JLabel(l), BorderLayout.SOUTH);
+            JProgressBar comp = new JProgressBar(SwingConstants.VERTICAL);
+            comp.setName(l);
+            comp.setPreferredSize(new Dimension(10, 100));
+            comp.setStringPainted(true);
+            comp.setMaximum(100);
+            comp.setValue((int) (Math.random() * 100));
+            pp.add(comp, BorderLayout.CENTER);
+
+            p.add(pp);
+            log.debug("Initialized progress bar for '{}'", l);
+        }
+
+        soundImagePanel.setPreferredSize(new Dimension(320, 240));
+        p.add(soundImagePanel);
+
+        log.debug("South pane initialization complete.");
+        return p;
     }
 
     private BufferedImage annotateBufferedWithDetection(DetectionResult x) {
@@ -155,7 +241,38 @@ public class MainFrame extends JFrame {
         return img;
     }
 
+    private <T extends JComponent> T getNamedChild(Container c, String name, Class<T> clazz) {
+        if (c == null) c = this.getContentPane();
+
+        var xxx = Arrays.stream(c.getComponents())
+                .filter(x -> clazz.isAssignableFrom(x.getClass()))
+                .filter(x -> x.getName().equals(name))
+                .findFirst();
+        if (xxx.isPresent()) return (T) xxx.get();
+
+        for (var x : c.getComponents()) {
+            if (x instanceof JComponent) {
+                var y = getNamedChild((JComponent) x, name, clazz);
+                if (y != null) return y;
+            }
+        }
+
+        return null;
+    }
+
     public void setFps(Long x) {
         SwingUtilities.invokeLater(() -> fps.setText("Latency: " + x + "ms"));
+    }
+
+    public void receiveSound(DetectionResult x) {
+        x.matched()
+                .forEach(xx ->
+                        Objects.requireNonNull(getNamedChild(this.getContentPane(), xx.type(), JProgressBar.class))
+                                .setValue((int) (xx.score() * 100))
+                );
+
+        soundImage = x.getImage();
+        soundImagePanel.repaint();
+
     }
 }

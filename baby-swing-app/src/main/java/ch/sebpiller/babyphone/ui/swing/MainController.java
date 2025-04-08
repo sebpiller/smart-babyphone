@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
@@ -24,16 +25,13 @@ public class MainController {
     @Getter
     @NotEmpty
     private final List<ImageAnalyzer> availableAlgorithms;
-
     @Getter
     @NotEmpty
     private final List<SoundAnalyzer> soundAnalyzers;
     private final SoundAnalyzer soundAnalyzer;
-
     @Getter
     @Setter
     private ImageAnalyzer iaProcessingAlgorithm;
-
     @Getter
     @Setter
     private LongConsumer fps = x -> log.debug("fps: {}", x);
@@ -47,6 +45,10 @@ public class MainController {
     @Getter
     @Setter
     private Consumer<DetectionResult> detecteds = x -> {
+    };
+    @Getter
+    @Setter
+    private Consumer<DetectionResult> detectedSounds = x -> {
     };
 
     @Getter
@@ -76,14 +78,15 @@ public class MainController {
         fps.accept(stop - start);
     }
 
-    public void receiveRawSound(byte[] raw) {
+    public void receiveRawSound(File raw) {
         var start = System.currentTimeMillis();
 
-        var x = soundAnalyzer.detectObjectsOn(raw);
-        log.info("Detected: {}", x);
+        var x = soundAnalyzer.detectObjectsOn(raw, xx -> true);
+        log.info("Detected sound infos: {} is {}", raw.getName(), x.matched().findFirst().orElse(null));
+
+        detectedSounds.accept(x);
 
         var stop = System.currentTimeMillis();
         log.debug("Sound processing took {}ms", stop - start);
-        fps.accept(stop - start);
     }
 }

@@ -4,10 +4,11 @@ import ch.sebpiller.babyphone.data.process.opencv.OpenCvImageAnalyzer;
 import ch.sebpiller.babyphone.detection.ImageAnalyzer;
 import ch.sebpiller.babyphone.detection.SoundAnalyzer;
 import ch.sebpiller.babyphone.detection.fasterrcnn.FasterRcnnImageAnalyzer;
-import ch.sebpiller.babyphone.detection.sound.YamnetSoundAnalyzer;
-import ch.sebpiller.babyphone.fetch.rtsp.RtspImageSource;
-import ch.sebpiller.babyphone.fetch.rtsp.RtspSoundSource;
+import ch.sebpiller.babyphone.detection.sound.Cifar10AudioClassifier;
+import ch.sebpiller.babyphone.fetch.image.ImageSource;
 import ch.sebpiller.babyphone.fetch.rtsp.properties.RtspStreamProperties;
+import ch.sebpiller.babyphone.fetch.sound.LineInSoundSource;
+import ch.sebpiller.babyphone.fetch.sound.SoundSource;
 import ch.sebpiller.babyphone.process.piaihat.PiaihatImageAnalyzer;
 import ch.sebpiller.babyphone.ui.config.properties.BabyPhoneProperties;
 import org.opencv.objdetect.CascadeClassifier;
@@ -16,27 +17,39 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 @Configuration
 @EnableScheduling
 @EnableConfigurationProperties({BabyPhoneProperties.class, RtspStreamProperties.class})
-//@Import(AopConfig.class)
 public class BabyphoneConfiguration {
     @Bean
-    RtspSoundSource soundSource() {
-        return new RtspSoundSource();
+    SoundSource soundSource() {
+        //return new RtspSoundSource();
+        return new LineInSoundSource();
+
+//        return duration -> {
+//            var x = new File("smart-babyphone/baby-samples-data/src/main/resources/samples/sounds/music_samples").listFiles();
+//            assert x != null;
+//            var xx = Arrays.stream(x).collect(Collectors.toCollection(ArrayList::new));
+//            Collections.shuffle(xx);
+//            return xx.getFirst();
+//        };
     }
 
     @Bean
     SoundAnalyzer soundAnalyzer() {
-        return new YamnetSoundAnalyzer();
+        // return new ResNetV2AudioClassifier();
+        return new Cifar10AudioClassifier();
     }
 
     @Bean
-    RtspImageSource rtspStreamReader(BabyPhoneProperties p) {
-        return new RtspImageSource(p.getRtspStream());
+    ImageSource rtspStreamReader(BabyPhoneProperties p) {
+        //  return new RtspImageSource(p.getRtspStream());
+
+        return () -> new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
     }
 
     @Bean

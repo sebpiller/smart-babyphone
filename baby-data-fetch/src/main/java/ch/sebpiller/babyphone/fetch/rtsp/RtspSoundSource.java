@@ -2,11 +2,13 @@ package ch.sebpiller.babyphone.fetch.rtsp;
 
 import ch.sebpiller.babyphone.fetch.sound.SoundSource;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
+import java.io.File;
+import java.time.Duration;
 
 
 @Lazy
@@ -16,18 +18,14 @@ import java.io.IOException;
 public class RtspSoundSource implements SoundSource {
     private long start = 0;
 
+    @SneakyThrows
     @Override
-    public byte[] captureClip() {
+    public File captureClip(Duration duration) {
         if (start == 0) {
             start = System.currentTimeMillis();
-            return new byte[0];
+            return null;
         }
 
-        //
-        try (var x = getClass().getResourceAsStream("/samples/sounds/miaow_16k.wav")) {
-            return x.readAllBytes();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return new File(getClass().getResource("/samples/sounds/miaow_16k.wav").toURI());
     }
 }

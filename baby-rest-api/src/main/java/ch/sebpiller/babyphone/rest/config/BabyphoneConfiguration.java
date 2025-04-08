@@ -1,4 +1,4 @@
-package  ch.sebpiller.babyphone.rest.config;
+package ch.sebpiller.babyphone.rest.config;
 
 import ch.sebpiller.babyphone.rest.config.properties.BabyPhoneProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

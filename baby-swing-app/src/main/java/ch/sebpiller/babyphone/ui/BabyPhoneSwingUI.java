@@ -31,6 +31,7 @@ public class BabyPhoneSwingUI {
         var ctrl = context.getBean(MainController.class);
 
         ctrl.setDetecteds(appFrame::reannotateImage);
+        ctrl.setDetectedSounds(appFrame::receiveSound);
         ctrl.setFps(appFrame::setFps);
         SwingUtilities.invokeLater(() -> appFrame.setVisible(true));
     }
