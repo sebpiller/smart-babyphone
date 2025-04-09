@@ -3,8 +3,7 @@ package ch.sebpiller.babyphone.ui.config;
 import ch.sebpiller.babyphone.data.process.opencv.OpenCvImageAnalyzer;
 import ch.sebpiller.babyphone.detection.ImageAnalyzer;
 import ch.sebpiller.babyphone.detection.SoundAnalyzer;
-import ch.sebpiller.babyphone.detection.fasterrcnn.FasterRcnnImageAnalyzer;
-import ch.sebpiller.babyphone.detection.sound.Cifar10AudioClassifier;
+import ch.sebpiller.babyphone.detection.sound.YamnetSoundAnalyzer;
 import ch.sebpiller.babyphone.fetch.image.ImageSource;
 import ch.sebpiller.babyphone.fetch.rtsp.properties.RtspStreamProperties;
 import ch.sebpiller.babyphone.fetch.sound.LineInSoundSource;
@@ -29,20 +28,25 @@ public class BabyphoneConfiguration {
     SoundSource soundSource() {
         //return new RtspSoundSource();
         return new LineInSoundSource();
-
-//        return duration -> {
+//
+//        return (d, dsfx) -> {
 //            var x = new File("smart-babyphone/baby-samples-data/src/main/resources/samples/sounds/music_samples").listFiles();
 //            assert x != null;
 //            var xx = Arrays.stream(x).collect(Collectors.toCollection(ArrayList::new));
 //            Collections.shuffle(xx);
-//            return xx.getFirst();
+//            try (var fis = new FileInputStream(xx.getFirst())) {
+//                return fis.readAllBytes();
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+//            }
 //        };
     }
 
     @Bean
     SoundAnalyzer soundAnalyzer() {
+        return new YamnetSoundAnalyzer();
         // return new ResNetV2AudioClassifier();
-        return new Cifar10AudioClassifier();
+        //return new Cifar10AudioClassifier();
     }
 
     @Bean
@@ -59,7 +63,8 @@ public class BabyphoneConfiguration {
 
     @Bean
     ImageAnalyzer fasterRcnnRecognizer() {
-        return new FasterRcnnImageAnalyzer();
+        //  return new FasterRcnnImageAnalyzer();
+        return new PiaihatImageAnalyzer();
     }
 
     @Bean

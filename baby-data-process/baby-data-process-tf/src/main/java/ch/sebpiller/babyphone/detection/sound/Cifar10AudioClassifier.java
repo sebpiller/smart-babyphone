@@ -3,50 +3,45 @@ package ch.sebpiller.babyphone.detection.sound;
 import ch.sebpiller.babyphone.detection.Detected;
 import ch.sebpiller.babyphone.detection.DetectionResult;
 import ch.sebpiller.babyphone.detection.SoundAnalyzer;
-import ch.sebpiller.babyphone.detection.sound.torefacto.ImageUtils;
-import ch.sebpiller.babyphone.detection.sound.torefacto.MelSpectrogram;
-import ch.sebpiller.babyphone.detection.sound.torefacto.TensorUtils;
-import ch.sebpiller.babyphone.detection.sound.torefacto.consts.MelSpectrogramDimension;
-import jakarta.annotation.PostConstruct;
+import ch.sebpiller.babyphone.sound.toolkit.MelSpectrogram;
+import ch.sebpiller.babyphone.tensorflow.BaseTensorFlowRunnerFacade;
+import ch.sebpiller.babyphone.tensorflow.TensorUtils;
+import ch.sebpiller.babyphone.toolkit.ImageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.tensorflow.Graph;
 import org.tensorflow.Session;
-import org.tensorflow.proto.GraphDef;
 import org.tensorflow.types.TFloat32;
 
+import javax.sound.sampled.AudioFormat;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.function.Predicate;
 
 @Slf4j
 @Service
-public class Cifar10AudioClassifier implements Closeable, SoundAnalyzer {
+public class Cifar10AudioClassifier extends BaseTensorFlowRunnerFacade implements Closeable, SoundAnalyzer {
+
+
+    public static final String MODELS = "/home/seb/models";
+    public static final String HIGH_RES = MODELS + "/cifar10";
+    public static final String MODEL_PATH = HIGH_RES;
+
+    public static final int Width = 1366;
+    public static final int Height = 96;
 
     public static final String[] labels = new String[]{
             "blues", "classical", "country", "disco", "hiphop", "jazz", "metal", "pop", "reggae", "rock"
 
     };
 
-    private final Graph graph = new Graph();
-
-    @PostConstruct
-    void loadModel() throws IOException {
-        graph.importGraphDef(GraphDef.parseFrom(getClass().getResourceAsStream("/cifar10.pb")));
-    }
-
-
-    @Override
-    public void close() {
-        graph.close();
+    public Cifar10AudioClassifier() {
+        super(MODEL_PATH);
     }
 
     @Override
-    public DetectionResult detectObjectsOn(File sound, Predicate<Detected> includeInResult) {
-        var image = MelSpectrogram.extractSpectrogramFromAudioFile(sound);
+    public DetectionResult detectObjectsOn(byte[] sound, AudioFormat format, Predicate<Detected> includeInResult) {
+        var image = MelSpectrogram.extractSpectrogramFromAudioFile(sound, format);
 
         if (image != null) {
             return analyzeHistogram(image);
@@ -57,7 +52,7 @@ public class Cifar10AudioClassifier implements Closeable, SoundAnalyzer {
 
     DetectionResult analyzeHistogram(BufferedImage image) {
         var dr = DetectionResult.builder();
-        var predicted = runModelOnImage(image, MelSpectrogramDimension.Width, MelSpectrogramDimension.Height);
+        var predicted = runModelOnImage(image, Width, Height);
 
         var d = new ArrayList<Detected>();
         for (var x = 0; x < predicted.length; x++) {

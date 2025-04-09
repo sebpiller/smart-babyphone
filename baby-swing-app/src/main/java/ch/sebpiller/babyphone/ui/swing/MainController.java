@@ -11,8 +11,8 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import javax.sound.sampled.AudioFormat;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
@@ -78,11 +78,11 @@ public class MainController {
         fps.accept(stop - start);
     }
 
-    public void receiveRawSound(File raw) {
+    public void receiveRawSound(String name, byte[] raw, AudioFormat format) {
         var start = System.currentTimeMillis();
 
-        var x = soundAnalyzer.detectObjectsOn(raw, xx -> true);
-        log.info("Detected sound infos: {} is {}", raw.getName(), x.matched().findFirst().orElse(null));
+        var x = soundAnalyzer.detectObjectsOn(raw, format, xx -> true);
+        log.info("Detected sound infos: {} is {}", name, x.matched().findFirst().orElse(null));
 
         detectedSounds.accept(x);
 

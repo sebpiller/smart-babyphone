@@ -132,6 +132,11 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>baby-data-process-toolkit</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>baby-data-process-api</artifactId>
                 <version>${project.version}</version>
             </dependency>

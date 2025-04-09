@@ -1,10 +1,9 @@
 package ch.sebpiller.babyphone.detection;
 
-import java.io.File;
+import javax.sound.sampled.AudioFormat;
 import java.util.function.Predicate;
 
 public interface SoundAnalyzer {
 
-    DetectionResult detectObjectsOn(File sound, Predicate<Detected> includeInResult);
-
+    DetectionResult detectObjectsOn(byte[] sound, AudioFormat format, Predicate<Detected> includeInResult);
 }

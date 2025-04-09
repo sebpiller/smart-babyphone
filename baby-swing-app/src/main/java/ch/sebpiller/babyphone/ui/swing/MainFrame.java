@@ -67,7 +67,8 @@ public class MainFrame extends JFrame {
         log.info("Initializing MainFrame...");
         SwingUtilities.invokeAndWait(() -> {
             for (var i = 0; i < detecteds.length; i++) {
-                detecteds[i] = new JLabel("");
+                detecteds[i] = new JLabel("---");
+                detecteds[i].setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 var defaultColor = detecteds[i].getForeground();
                 var finalI = i;
                 detecteds[i].addMouseListener(new MouseAdapter() {
@@ -178,8 +179,7 @@ public class MainFrame extends JFrame {
                     });
 
             for (var ii = i.get(); ii < detecteds.length; ii++) {
-                detecteds[ii].setText("");
-                log.debug("Cleared unused detection label at index: {}", ii);
+                detecteds[ii].setText("---");
             }
 
             repaint();
@@ -208,11 +208,9 @@ public class MainFrame extends JFrame {
             comp.setPreferredSize(new Dimension(10, 100));
             comp.setStringPainted(true);
             comp.setMaximum(100);
-            comp.setValue((int) (Math.random() * 100));
             pp.add(comp, BorderLayout.CENTER);
 
             p.add(pp);
-            log.debug("Initialized progress bar for '{}'", l);
         }
 
         soundImagePanel.setPreferredSize(new Dimension(320, 240));
@@ -229,14 +227,15 @@ public class MainFrame extends JFrame {
 
         var graphics = (Graphics2D) img.getGraphics();
         graphics.setFont(Font.decode("Arial-24"));
-        for (var d : x.getDetected()) {
+        x.matched().forEach(d -> {
             graphics.setColor(highlight == d ? Color.RED : Color.GREEN);
             graphics.setStroke(new BasicStroke((float) (10 * Math.pow(d.score(), 2))));
             graphics.drawString(d.type() + " " + d.score(),
                     Math.clamp(d.x(), 10, img.getWidth() - 100),
                     Math.clamp(d.y(), 10, img.getHeight() - 100));
             graphics.drawRect(d.x(), d.y(), d.width(), d.height());
-        }
+        });
+
         graphics.dispose();
         return img;
     }
@@ -251,8 +250,8 @@ public class MainFrame extends JFrame {
         if (xxx.isPresent()) return (T) xxx.get();
 
         for (var x : c.getComponents()) {
-            if (x instanceof JComponent) {
-                var y = getNamedChild((JComponent) x, name, clazz);
+            if (x instanceof Container xx) {
+                var y = getNamedChild(xx, name, clazz);
                 if (y != null) return y;
             }
         }
@@ -273,6 +272,5 @@ public class MainFrame extends JFrame {
 
         soundImage = x.getImage();
         soundImagePanel.repaint();
-
     }
 }

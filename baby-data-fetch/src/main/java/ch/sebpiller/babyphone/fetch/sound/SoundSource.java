@@ -1,10 +1,12 @@
 package ch.sebpiller.babyphone.fetch.sound;
 
-import java.io.File;
+import lombok.SneakyThrows;
+
+import javax.sound.sampled.AudioFormat;
 import java.time.Duration;
 
 public interface SoundSource {
 
-    File captureClip(Duration duration);
-
+    @SneakyThrows
+    byte[] captureClip(Duration duration, AudioFormat format);
 }

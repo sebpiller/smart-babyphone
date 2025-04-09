@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
+import javax.sound.sampled.AudioFormat;
 import java.time.Duration;
 
 
@@ -16,16 +16,9 @@ import java.time.Duration;
 @Service
 @RequiredArgsConstructor
 public class RtspSoundSource implements SoundSource {
-    private long start = 0;
-
     @SneakyThrows
     @Override
-    public File captureClip(Duration duration) {
-        if (start == 0) {
-            start = System.currentTimeMillis();
-            return null;
-        }
-
-        return new File(getClass().getResource("/samples/sounds/miaow_16k.wav").toURI());
+    public byte[] captureClip(Duration duration, AudioFormat format) {
+        return getClass().getResourceAsStream("/samples/sounds/miaow_16k.wav").readAllBytes();
     }
 }

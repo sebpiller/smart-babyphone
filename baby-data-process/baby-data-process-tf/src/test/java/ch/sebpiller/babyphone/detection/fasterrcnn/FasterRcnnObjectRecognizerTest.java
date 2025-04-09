@@ -1,6 +1,7 @@
 package ch.sebpiller.babyphone.detection.fasterrcnn;
 
 
+import ch.sebpiller.babyphone.detection.images.fasterrcnn.FasterRcnnImageAnalyzer;
 import lombok.SneakyThrows;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
