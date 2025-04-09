@@ -35,7 +35,7 @@ public class TestDataProvider {
     @SuppressWarnings("unused")
     @SneakyThrows
     public static Stream<Arguments> findAvailableImages() {
-        return listClasspathFiles("/samples/images", x -> true)
+        return listClasspathFiles("/samples", true, IMAGES)
                 .map(x -> {
                     try {
                         return Arguments.of(x.getFileName().toString(), ImageIO.read(x.toFile()));
@@ -48,7 +48,7 @@ public class TestDataProvider {
     @SuppressWarnings("unused")
     @SneakyThrows
     public static Stream<Arguments> findJpegs() {
-        return listClasspathFiles("/samples/images", IMAGES)
+        return listClasspathFiles("/samples", true, IMAGES)
                 .map(x -> {
                     try {
                         return Arguments.of(x.getFileName().toString(), ImageIO.read(x.toFile()));
@@ -61,7 +61,7 @@ public class TestDataProvider {
     @SuppressWarnings("unused")
     @SneakyThrows
     public static Stream<Arguments> findAvailableAudios() {
-        return listClasspathFiles("/samples/sounds", x -> true)
+        return listClasspathFiles("/samples/sounds", false, x -> true)
                 .map(x -> {
                     try {
                         return Arguments.of(x.getFileName().toString(), new AudioInputStream(x.toUri().toURL().openStream(), new AudioFormat(44100, 16, 1, true, true), -1));
@@ -71,16 +71,28 @@ public class TestDataProvider {
                 });
     }
 
-    private static Stream<Path> listClasspathFiles(String classpathFolder, Predicate<Path> predicate) {
+    private static Stream<Path> listClasspathFiles(String classpathFolder, boolean recursive, Predicate<Path> predicate) {
         var resourceUrl = TestDataProvider.class.getResource(classpathFolder);
         if (resourceUrl == null) {
             throw new IllegalStateException("Path '" + classpathFolder + "' not found in the classpath.");
         }
 
         try {
-            return Files.list(Path.of(resourceUrl.toURI()))
-                    .sorted(Comparator.comparing((Path o) -> o.toAbsolutePath().toString().toLowerCase()))
-                    .filter(predicate);
+            var result = Stream.<Path>empty();
+            Path root = Path.of(resourceUrl.toURI());
+
+            var subdir = Files.list(root)
+                    .filter(p -> p.toFile().isDirectory() && recursive);
+
+
+            for (var folder : Stream.concat(Stream.of(root), subdir).toArray(Path[]::new)) {
+                result = Stream.concat(result, Files.list(folder)
+                        .filter(p -> p.toFile().isFile())
+                        .sorted(Comparator.comparing((Path o) -> o.toAbsolutePath().toString().toLowerCase()))
+                        .filter(predicate));
+            }
+
+            return result;
         } catch (IOException | URISyntaxException e) {
             throw new IllegalStateException(e);
         }

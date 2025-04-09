@@ -18,27 +18,43 @@ public abstract class BaseTensorFlowRunnerFacade implements Closeable, AutoClose
     protected final Session session;
 
     protected BaseTensorFlowRunnerFacade(Path modelPath) {
-        graph = new Graph();
-
-        if (modelPath != null)
+        if (modelPath == null) {
+            graph = null;
+            ops = null;
+            session = null;
+        } else {
+            graph = new Graph();
             try (var is = new FileInputStream(modelPath.toFile())) {
                 graph.importGraphDef(GraphDef.parseFrom(is));
             } catch (Exception e) {
                 log.error("Failed to load model from {}", modelPath, e);
             }
-
-        session = new Session(graph, ConfigProto.newBuilder()
-                .setAllowSoftPlacement(true)
-                .build());
-        ops = Ops.create(graph);
+            session = new Session(graph, ConfigProto.getDefaultInstance().toBuilder()
+                    .setAllowSoftPlacement(true)
+                    .setLogDevicePlacement(true)
+                    .setUsePerSessionThreads(true)
+//                .setGraphOptions(GraphOptions.newBuilder()
+//                        .setOptimizerOptions(OptimizerOptions.getDefaultInstance().toBuilder()
+//                                .setDoFunctionInlining(true)
+////                                .setGlobalJitLevelValue(12)
+////                                .setOptLevelValue(234)
+//                                .build())
+//                        .setPlacePrunedGraph(true)
+//                        .setEnableBfloat16Sendrecv(true)
+//                        .setInferShapes(true)
+//                )
+                    .build());
+            ops = Ops.create(graph);
+        }
     }
 
     @Override
     public void close() {
-        log.info("Closing TensorFlow session");
-
-        session.close();
-        graph.close();
+        log.debug("Closing TensorFlow session");
+        if (session != null)
+            session.close();
+        if (graph != null)
+            graph.close();
     }
 
 }

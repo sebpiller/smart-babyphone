@@ -25,16 +25,23 @@
             <groupId>org.tensorflow</groupId>
             <artifactId>tensorflow-core-platform</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.tensorflow</groupId>
+            <artifactId>tensorflow-core-native</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.tensorflow</groupId>
+            <artifactId>tensorflow-framework</artifactId>
+        </dependency>
+
 
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
-            <version>1.14.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.axet</groupId>
             <artifactId>TarsosDSP</artifactId>
-            <version>2.4-1</version>
         </dependency>
     </dependencies>
 
