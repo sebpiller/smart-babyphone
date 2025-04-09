@@ -7,7 +7,9 @@ import ch.sebpiller.babyphone.sound.toolkit.MelSpectrogram;
 import ch.sebpiller.babyphone.tensorflow.BaseTensorFlowRunnerFacade;
 import ch.sebpiller.babyphone.tensorflow.TensorUtils;
 import ch.sebpiller.babyphone.toolkit.ImageUtils;
+import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.tensorflow.Session;
 import org.tensorflow.types.TFloat32;
@@ -18,8 +20,10 @@ import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.function.Predicate;
 
+@Lazy
 @Slf4j
 @Service
+@AutoLog
 public class Cifar10AudioClassifier extends BaseTensorFlowRunnerFacade implements Closeable, SoundAnalyzer {
 
 

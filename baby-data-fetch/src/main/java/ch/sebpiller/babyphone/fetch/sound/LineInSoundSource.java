@@ -1,5 +1,6 @@
 package ch.sebpiller.babyphone.fetch.sound;
 
+import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -8,13 +9,13 @@ import org.springframework.stereotype.Component;
 
 import javax.sound.sampled.*;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.time.Duration;
 
 @Lazy
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@AutoLog
 public class LineInSoundSource implements SoundSource {
 
     @SneakyThrows
@@ -31,8 +32,8 @@ public class LineInSoundSource implements SoundSource {
                 try {
                     Thread.sleep(duration.toMillis());
                 } catch (InterruptedException e) {
-                    log.error("Audio capture thread interrupted", e);
-                    throw new RuntimeException(e);
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException(e);
                 }
                 line.stop();
                 log.info("Audio capture stopped");
@@ -46,9 +47,10 @@ public class LineInSoundSource implements SoundSource {
             t.join();
             return out.toByteArray();
         } catch (LineUnavailableException ex) {
-            throw new IOException("Unable to access system line-in for audio capture", ex);
+            throw new IllegalStateException("Unable to access system line-in for audio capture", ex);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(e);
         }
     }
 }

@@ -4,6 +4,7 @@ import ch.sebpiller.babyphone.detection.Detected;
 import ch.sebpiller.babyphone.detection.DetectionResult;
 import ch.sebpiller.babyphone.detection.SoundAnalyzer;
 import ch.sebpiller.babyphone.tensorflow.BaseTensorFlowRunnerFacade;
+import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -25,6 +26,7 @@ import java.util.function.Predicate;
 @Lazy
 @Slf4j
 @Service
+@AutoLog
 public class YamnetSoundAnalyzer extends BaseTensorFlowRunnerFacade implements SoundAnalyzer {
 
     public static final String MODELS = "/home/seb/models";

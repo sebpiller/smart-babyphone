@@ -3,12 +3,21 @@ package ch.sebpiller.babyphone.ui.swing;
 import ch.sebpiller.babyphone.detection.DetectionResult;
 import ch.sebpiller.babyphone.detection.ImageAnalyzer;
 import ch.sebpiller.babyphone.detection.SoundAnalyzer;
+import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ExitCodeGenerator;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.SpringApplicationShutdownHandlers;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
 import javax.sound.sampled.AudioFormat;
@@ -20,7 +29,12 @@ import java.util.function.LongConsumer;
 @Slf4j
 @RequiredArgsConstructor
 @Component
+@Lazy
+@AutoLog
 public class MainController {
+    private final ConfigurableApplicationContext context;
+
+    private final ThreadPoolTaskScheduler taskScheduler;
 
     @Getter
     @NotEmpty
@@ -88,5 +102,16 @@ public class MainController {
 
         var stop = System.currentTimeMillis();
         log.debug("Sound processing took {}ms", stop - start);
+    }
+
+    public void requestApplicationTermination() {
+        log.info("Stopping scheduled tasks...");
+        taskScheduler.initiateShutdown();
+        taskScheduler.shutdown();
+
+        log.info("Application exiting with status code 0.");
+        context.stop();
+        SpringApplication.exit(context, () -> 0);
+        System.exit(0);
     }
 }

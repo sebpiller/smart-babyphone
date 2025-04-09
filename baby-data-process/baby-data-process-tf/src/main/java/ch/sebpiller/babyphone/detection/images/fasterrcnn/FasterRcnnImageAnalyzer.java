@@ -4,6 +4,7 @@ import ch.sebpiller.babyphone.detection.Detected;
 import ch.sebpiller.babyphone.detection.DetectionResult;
 import ch.sebpiller.babyphone.detection.ImageAnalyzer;
 import ch.sebpiller.babyphone.tensorflow.BaseTensorFlowRunnerFacade;
+import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -35,6 +36,7 @@ import java.util.function.Predicate;
 @Lazy
 @Slf4j
 @Service
+@AutoLog
 public class FasterRcnnImageAnalyzer extends BaseTensorFlowRunnerFacade implements ImageAnalyzer {
 
 

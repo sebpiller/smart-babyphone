@@ -108,11 +108,11 @@
                 <scope>provided</scope>
             </dependency>
 
-            <!--        <dependency>-->
-            <!--            <groupId>ch.sebpiller.babyphone</groupId>-->
-            <!--            <artifactId>toolkit-spi-aop</artifactId>-->
-            <!--            <version>1.0-SNAPSHOT</version>-->
-            <!--        </dependency>-->
+            <dependency>
+                <groupId>ch.sebpiller.toolkit</groupId>
+                <artifactId>toolkit-spi-aop</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
 
 
             <dependency>
@@ -182,6 +182,11 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.sebpiller.toolkit</groupId>
+            <artifactId>toolkit-spi-aop</artifactId>
         </dependency>
 
         <dependency>

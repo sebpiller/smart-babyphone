@@ -3,16 +3,20 @@ package ch.sebpiller.babyphone.ui.swing;
 import ch.sebpiller.babyphone.detection.Detected;
 import ch.sebpiller.babyphone.detection.DetectionResult;
 import ch.sebpiller.babyphone.detection.ImageAnalyzer;
+import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,6 +29,8 @@ import static ch.sebpiller.babyphone.detection.sound.ResNetV2AudioClassifier.lab
 @Slf4j
 @RequiredArgsConstructor
 @Component
+@Lazy
+@AutoLog
 public class MainFrame extends JFrame {
 
     private final transient MainController controller;
@@ -151,7 +157,13 @@ public class MainFrame extends JFrame {
             contentPane.add(getSouthPane(), BorderLayout.SOUTH);
             log.debug("Layout components initialized.");
 
-            setDefaultCloseOperation(EXIT_ON_CLOSE);
+            setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+            addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    controller.requestApplicationTermination();
+                }
+            });
 
             pack();
             setLocationRelativeTo(null);

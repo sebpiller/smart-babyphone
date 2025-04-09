@@ -2,6 +2,7 @@ package ch.sebpiller.babyphone.ui.service.schedule;
 
 import ch.sebpiller.babyphone.fetch.image.ImageSource;
 import ch.sebpiller.babyphone.ui.swing.MainController;
+import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,12 +13,13 @@ import java.util.concurrent.TimeUnit;
 @Lazy
 @RequiredArgsConstructor
 @Service
+@AutoLog
 public class ScheduledFetchImage {
 
     private final ImageSource imageSource;
     private final MainController mainController;
 
-    @Scheduled(fixedRate = 80, timeUnit = TimeUnit.MILLISECONDS)
+    @Scheduled(initialDelay = 5_000, fixedRate = 100, timeUnit = TimeUnit.MILLISECONDS, scheduler = "taskScheduler")
     public void captureNextImage() {
         mainController.receiveRawImage(imageSource.get());
     }

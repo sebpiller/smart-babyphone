@@ -34,9 +34,11 @@ public abstract class BaseTensorFlowRunnerFacade implements Closeable, AutoClose
     }
 
     @Override
-    public final void close() {
+    public void close() {
+        log.info("Closing TensorFlow session");
+
+        session.close();
         graph.close();
     }
-
 
 }
