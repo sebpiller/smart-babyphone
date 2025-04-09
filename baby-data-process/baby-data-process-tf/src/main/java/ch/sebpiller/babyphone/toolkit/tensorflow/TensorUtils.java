@@ -1,4 +1,4 @@
-package ch.sebpiller.babyphone.tensorflow;
+package ch.sebpiller.babyphone.toolkit.tensorflow;
 
 import lombok.experimental.UtilityClass;
 import org.tensorflow.ndarray.NdArrays;

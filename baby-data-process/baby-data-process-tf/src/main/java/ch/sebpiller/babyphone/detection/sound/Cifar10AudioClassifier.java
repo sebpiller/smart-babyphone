@@ -3,10 +3,10 @@ package ch.sebpiller.babyphone.detection.sound;
 import ch.sebpiller.babyphone.detection.Detected;
 import ch.sebpiller.babyphone.detection.DetectionResult;
 import ch.sebpiller.babyphone.detection.SoundAnalyzer;
-import ch.sebpiller.babyphone.sound.toolkit.MelSpectrogram;
-import ch.sebpiller.babyphone.tensorflow.BaseTensorFlowRunnerFacade;
-import ch.sebpiller.babyphone.tensorflow.TensorUtils;
 import ch.sebpiller.babyphone.toolkit.ImageUtils;
+import ch.sebpiller.babyphone.toolkit.sound.MelSpectrogram;
+import ch.sebpiller.babyphone.toolkit.tensorflow.BaseTensorFlowRunnerFacade;
+import ch.sebpiller.babyphone.toolkit.tensorflow.TensorUtils;
 import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -17,6 +17,7 @@ import org.tensorflow.types.TFloat32;
 import javax.sound.sampled.AudioFormat;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.function.Predicate;
 
@@ -34,13 +35,21 @@ public class Cifar10AudioClassifier extends BaseTensorFlowRunnerFacade implement
     public static final int Width = 1366;
     public static final int Height = 96;
 
-    public static final String[] labels = new String[]{
-            "blues", "classical", "country", "disco", "hiphop", "jazz", "metal", "pop", "reggae", "rock"
-
+    private static final String[] LABELS = new String[]{
+            "blues",
+            "classical",
+            "country",
+            "disco",
+            "hiphop",
+            "jazz",
+            "metal",
+            "pop",
+            "reggae",
+            "rock",
     };
 
     public Cifar10AudioClassifier() {
-        super(MODEL_PATH);
+        super(Path.of(MODEL_PATH));
     }
 
     @Override
@@ -60,7 +69,7 @@ public class Cifar10AudioClassifier extends BaseTensorFlowRunnerFacade implement
 
         var d = new ArrayList<Detected>();
         for (var x = 0; x < predicted.length; x++) {
-            d.add(new Detected(labels[x], predicted[x], 0, 0, 1, 1));
+            d.add(new Detected(LABELS[x], predicted[x], 0, 0, 1, 1));
         }
 
         dr.detected(d);

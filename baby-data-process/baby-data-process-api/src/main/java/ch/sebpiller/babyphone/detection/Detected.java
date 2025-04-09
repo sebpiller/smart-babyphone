@@ -8,4 +8,11 @@ public record Detected(String type, float score, int x, int y, int width, int he
         return Float.compare(this.score, o.score);
     }
 
+    @Override
+    public String toString() {
+        return "Detected{" +
+                "type='" + type + '\'' +
+                ", score=" + score +
+                '}';
+    }
 }

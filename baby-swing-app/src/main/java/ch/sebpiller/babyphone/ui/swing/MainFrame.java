@@ -24,7 +24,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static ch.sebpiller.babyphone.detection.sound.ResNetV2AudioClassifier.labels;
+import static ch.sebpiller.babyphone.detection.sound.ResNetV2AudioClassifier.LABELS;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -51,8 +51,8 @@ public class MainFrame extends JFrame {
     private final JLabel[] detecteds = new JLabel[10];
     private JLabel fps;
     private transient Detected highlight;
-    private BufferedImage soundImage;
-    private JPanel soundImagePanel = new JPanel() {
+    private transient BufferedImage soundImage;
+    private final JPanel soundImagePanel = new JPanel() {
         @Override
         public void paint(Graphics g) {
             super.paint(g);
@@ -71,7 +71,7 @@ public class MainFrame extends JFrame {
     @PostConstruct
     private void init() {
         log.info("Initializing MainFrame...");
-        SwingUtilities.invokeAndWait(() -> {
+        SwingUtilities.invokeLater(() -> {
             for (var i = 0; i < detecteds.length; i++) {
                 detecteds[i] = new JLabel("---");
                 detecteds[i].setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -85,14 +85,12 @@ public class MainFrame extends JFrame {
                         var detectionResult = controller.getDetectionResult();
                         var detected = detectionResult.getDetected();
                         highlight = finalI < detected.size() ? detected.get(finalI) : null;
-                        log.debug("Mouse entered on detection label: {}", highlight);
                         reannotateImage(detectionResult);
                     }
 
                     @Override
                     public void mouseExited(MouseEvent e) {
                         ((JLabel) e.getSource()).setForeground(defaultColor);
-                        log.debug("Mouse exited from detection label.");
                     }
                 });
             }
@@ -211,7 +209,7 @@ public class MainFrame extends JFrame {
         p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
         p.add(Box.createHorizontalGlue());
 
-        for (var l : labels) {
+        for (var l : LABELS) {
             var pp = new JPanel();
             pp.setLayout(new BorderLayout());
             pp.add(new JLabel(l), BorderLayout.SOUTH);

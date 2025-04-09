@@ -11,4 +11,12 @@
 
     <artifactId>baby-samples-data</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>compile</scope><!-- yes scope=compile: this module implements testing utils -->
+        </dependency>
+    </dependencies>
+
 </project>

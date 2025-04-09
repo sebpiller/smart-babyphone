@@ -1,4 +1,4 @@
-package ch.sebpiller.babyphone.sound.toolkit;
+package ch.sebpiller.babyphone.toolkit.sound;
 
 import be.tarsos.dsp.AudioEvent;
 import be.tarsos.dsp.AudioProcessor;

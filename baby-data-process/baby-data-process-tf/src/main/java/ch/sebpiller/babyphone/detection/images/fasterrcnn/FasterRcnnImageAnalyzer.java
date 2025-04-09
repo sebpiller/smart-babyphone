@@ -3,18 +3,22 @@ package ch.sebpiller.babyphone.detection.images.fasterrcnn;
 import ch.sebpiller.babyphone.detection.Detected;
 import ch.sebpiller.babyphone.detection.DetectionResult;
 import ch.sebpiller.babyphone.detection.ImageAnalyzer;
-import ch.sebpiller.babyphone.tensorflow.BaseTensorFlowRunnerFacade;
+import ch.sebpiller.babyphone.toolkit.tensorflow.BaseTensorFlowRunnerFacade;
 import ch.sebpiller.spi.toolkit.aop.AutoLog;
-import jakarta.annotation.PostConstruct;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.tensorflow.Result;
 import org.tensorflow.SavedModelBundle;
+import org.tensorflow.Session;
 import org.tensorflow.Tensor;
 import org.tensorflow.ndarray.NdArrays;
-import org.tensorflow.op.core.Constant;
+import org.tensorflow.op.Ops;
 import org.tensorflow.op.image.DecodeJpeg;
+import org.tensorflow.proto.ConfigProto;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.TString;
 import org.tensorflow.types.TUint8;
@@ -23,146 +27,62 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
  * @see <a href="https://www.kaggle.com/models/tensorflow/faster-rcnn-inception-resnet-v2/tensorFlow2/1024x1024/1">Faster RCNN Resnet Model</a>
  */
-//@AutoLog(printArgs = true)
 @Lazy
 @Slf4j
 @Service
 @AutoLog
+@ToString
 public class FasterRcnnImageAnalyzer extends BaseTensorFlowRunnerFacade implements ImageAnalyzer {
-
 
     public static final String MODELS = "/home/seb/models";
     public static final String HIGH_RES = MODELS + "/faster_rcnn_inception_resnet_v2_1024x1024";
     public static final String MODEL_PATH = HIGH_RES;
     public static final String LOW_RES = MODELS + "/faster-rcnn-inception-resnet-v2-tensorflow2-640x640-v1";
-    private static final String[] cocoLabels = new String[]{
-            "person",
-            "bicycle",
-            "car",
-            "motorcycle",
-            "airplane",
-            "bus",
-            "train",
-            "truck",
-            "boat",
-            "traffic light",
-            "fire hydrant",
-            "street sign",
-            "stop sign",
-            "parking meter",
-            "bench",
-            "bird",
-            "cat",
-            "dog",
-            "horse",
-            "sheep",
-            "cow",
-            "elephant",
-            "bear",
-            "zebra",
-            "giraffe",
-            "hat",
-            "backpack",
-            "umbrella",
-            "shoe",
-            "eye glasses",
-            "handbag",
-            "tie",
-            "suitcase",
-            "frisbee",
-            "skis",
-            "snowboard",
-            "sports ball",
-            "kite",
-            "baseball bat",
-            "baseball glove",
-            "skateboard",
-            "surfboard",
-            "tennis racket",
-            "bottle",
-            "plate",
-            "wine glass",
-            "cup",
-            "fork",
-            "knife",
-            "spoon",
-            "bowl",
-            "banana",
-            "apple",
-            "sandwich",
-            "orange",
-            "broccoli",
-            "carrot",
-            "hot dog",
-            "pizza",
-            "donut",
-            "cake",
-            "chair",
-            "couch",
-            "potted plant",
-            "bed",
-            "mirror",
-            "dining table",
-            "window",
-            "desk",
-            "toilet",
-            "door",
-            "tv",
-            "laptop",
-            "mouse",
-            "remote",
-            "keyboard",
-            "cell phone",
-            "microwave",
-            "oven",
-            "toaster",
-            "sink",
-            "refrigerator",
-            "blender",
-            "book",
-            "clock",
-            "vase",
-            "scissors",
-            "teddy bear",
-            "hair drier",
-            "toothbrush",
-            "hair brush",
-    };
-    private TreeMap<Float, String> cocoTreeMap;
-    private SavedModelBundle model;
+    private static final String[] COCO_LABELS = IOUtils
+            .readLines(Objects.requireNonNull(FasterRcnnImageAnalyzer.class.getResourceAsStream("/coco_labels.csv")), StandardCharsets.UTF_8)
+            .toArray(String[]::new);
+    private final SavedModelBundle model;
+    private final Ops o;
+    private final Session s;
 
+    @Autowired
     public FasterRcnnImageAnalyzer() {
-        super(MODEL_PATH + "/saved_model.pb");
+        super(null);
+        log.info("creating {}. Loading model from {}", this, MODEL_PATH);
+        model = SavedModelBundle.load(MODEL_PATH);
+        o = Ops.create(model.graph());
+        s = new Session(model.graph(), ConfigProto.newBuilder()
+                .setAllowSoftPlacement(true)
+                .build());
     }
 
     @Override
     public DetectionResult detectObjectsOn(BufferedImage image, Predicate<Detected> includeInResult) {
         var decodeJpeg = toDecodeJpeg(image);
-
         var detected = new ArrayList<Detected>();
         var result = DetectionResult.builder().detected(detected);
 
-        try (var shapeResult = session.runner().fetch(decodeJpeg).run()) {
-            var imageShape = shapeResult.get(0).shape();
-            var imageShapeArray = imageShape.asArray();
-            var reshape = ops.reshape(decodeJpeg,
-                    ops.array(1,
+        try (var shapeResult = model.session().runner().fetch(decodeJpeg).run()) {
+            var imageShapeArray = shapeResult.get(0).shape().asArray();
+            var reshape = o.reshape(decodeJpeg,
+                    o.array(1,
                             imageShapeArray[0],
                             imageShapeArray[1],
                             imageShapeArray[2]
                     )
             );
 
-            try (var reshapeResult = session.runner().fetch(reshape).run();
+            try (var reshapeResult = model.session().runner().fetch(reshape).run();
                  var reshapeTensor = (TUint8) reshapeResult.get(0)) {
                 var feedDict = new HashMap<String, Tensor>();
                 feedDict.put("input_tensor", reshapeTensor);
@@ -182,7 +102,7 @@ public class FasterRcnnImageAnalyzer extends BaseTensorFlowRunnerFacade implemen
                             for (var n = 0; n < numDetects; n++) {
                                 var detectionScore = detectionScores.getFloat(0, n);
                                 var detectionClass = detectionClasses.getFloat(0, n);
-                                var d = cocoTreeMap.get(detectionClass - 1);
+                                var d = COCO_LABELS[(int) (detectionClass - 1)];
                                 var e = detectionBoxes.get(0, n);
 
                                 var x = (int) (e.getFloat(1) * image.getWidth());
@@ -205,21 +125,22 @@ public class FasterRcnnImageAnalyzer extends BaseTensorFlowRunnerFacade implemen
     }
 
     private DecodeJpeg toDecodeJpeg(BufferedImage image) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        var baos = new ByteArrayOutputStream();
         try {
             ImageIO.write(image, "jpg", baos);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to convert BufferedImage to byte array", e);
         }
-        byte[] imageData = baos.toByteArray();
+        var imageData = baos.toByteArray();
 
-        TString tString = TString.tensorOfBytes(NdArrays.scalarOfObject(imageData));
-        Constant<TString> constant = ops.constant(tString);
+        var tString = TString.tensorOfBytes(NdArrays.scalarOfObject(imageData));
+        var constant = o.constant(tString);
 
-        var options = DecodeJpeg.channels(3L)
+        var options = DecodeJpeg
+                .channels(3L)
                 //.ratio(8L)
                 ;
-        return ops.image.decodeJpeg(constant, options);
+        return o.image.decodeJpeg(constant, options);
     }
 
     private Result invokeIaModel(Map<String, Tensor> input) {
@@ -230,16 +151,14 @@ public class FasterRcnnImageAnalyzer extends BaseTensorFlowRunnerFacade implemen
         return result;
     }
 
-    @PostConstruct
-    private void postConstruct() {
-        cocoTreeMap = new TreeMap<>();
-        float cocoCount = 0;
-        for (var cocoLabel : cocoLabels) {
-            cocoTreeMap.put(cocoCount, cocoLabel);
-            cocoCount++;
+    @Override
+    public void close() {
+        try {
+            s.close();
+            model.graph().close();
+            model.close();
+        } finally {
+            super.close();
         }
-
-        model = SavedModelBundle.load(MODEL_PATH);
     }
-
 }

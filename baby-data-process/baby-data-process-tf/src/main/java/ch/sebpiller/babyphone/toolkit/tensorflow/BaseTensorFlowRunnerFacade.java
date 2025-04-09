@@ -1,4 +1,4 @@
-package ch.sebpiller.babyphone.tensorflow;
+package ch.sebpiller.babyphone.toolkit.tensorflow;
 
 import lombok.extern.slf4j.Slf4j;
 import org.tensorflow.Graph;
@@ -9,20 +9,20 @@ import org.tensorflow.proto.GraphDef;
 
 import java.io.Closeable;
 import java.io.FileInputStream;
+import java.nio.file.Path;
 
 @Slf4j
 public abstract class BaseTensorFlowRunnerFacade implements Closeable, AutoCloseable {
-    //  protected final SavedModelBundle model;
     protected final Graph graph;
     protected final Ops ops;
     protected final Session session;
 
-    protected BaseTensorFlowRunnerFacade(String modelPath) {
+    protected BaseTensorFlowRunnerFacade(Path modelPath) {
         graph = new Graph();
 
         if (modelPath != null)
-            try (var ia = new FileInputStream(modelPath)) {
-                graph.importGraphDef(GraphDef.parseFrom(ia));
+            try (var is = new FileInputStream(modelPath.toFile())) {
+                graph.importGraphDef(GraphDef.parseFrom(is));
             } catch (Exception e) {
                 log.error("Failed to load model from {}", modelPath, e);
             }
