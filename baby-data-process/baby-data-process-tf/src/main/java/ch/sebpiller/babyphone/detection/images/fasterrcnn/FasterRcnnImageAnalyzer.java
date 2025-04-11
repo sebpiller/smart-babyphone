@@ -3,6 +3,7 @@ package ch.sebpiller.babyphone.detection.images.fasterrcnn;
 import ch.sebpiller.babyphone.detection.Detected;
 import ch.sebpiller.babyphone.detection.DetectionResult;
 import ch.sebpiller.babyphone.detection.ImageAnalyzer;
+import ch.sebpiller.babyphone.toolkit.ImageUtils;
 import ch.sebpiller.babyphone.toolkit.tensorflow.BaseTensorFlowRunnerFacade;
 import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import lombok.*;
@@ -15,9 +16,6 @@ import org.tensorflow.*;
 import org.tensorflow.ndarray.NdArrays;
 import org.tensorflow.op.Ops;
 import org.tensorflow.op.image.DecodeJpeg;
-import org.tensorflow.proto.ConfigProto;
-import org.tensorflow.proto.GraphOptions;
-import org.tensorflow.proto.OptimizerOptions;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.TString;
 import org.tensorflow.types.TUint8;
@@ -40,7 +38,7 @@ import java.util.function.Predicate;
 @Slf4j
 @Service
 @AutoLog
-@ToString
+@ToString(onlyExplicitlyIncluded = true)
 public class FasterRcnnImageAnalyzer extends BaseTensorFlowRunnerFacade implements ImageAnalyzer {
 
     private static final String[] COCO_LABELS = IOUtils.readLines(Objects.requireNonNull(FasterRcnnImageAnalyzer.class.getResourceAsStream("/coco_labels.csv")), StandardCharsets.UTF_8).toArray(String[]::new);
@@ -63,33 +61,15 @@ public class FasterRcnnImageAnalyzer extends BaseTensorFlowRunnerFacade implemen
         log.info("creating {} with configuration {}", this, this.configuration);
         model = SavedModelBundle.load(this.configuration.getModelPath(), SavedModelBundle.DEFAULT_TAG);
         g = model.graph();
-        //s = model.session();
         o = Ops.create(g);
 
-        s = new Session(g, ConfigProto.getDefaultInstance().toBuilder()
-                .setAllowSoftPlacement(true)
-                .setLogDevicePlacement(true)
-                .setUsePerSessionThreads(true)
-                .setGraphOptions(GraphOptions.newBuilder()
-                        .setOptimizerOptions(OptimizerOptions.getDefaultInstance().toBuilder()
-                                .setDoFunctionInlining(true)
-                                .setDoCommonSubexpressionElimination(true)
-                                .setOptLevel(OptimizerOptions.Level.L1)
-                                .setGlobalJitLevel(OptimizerOptions.GlobalJitLevel.ON_2)
-                                .build())
-                        .setPlacePrunedGraph(true)
-                        .setEnableBfloat16Sendrecv(true)
-                        .setInferShapes(true)
-                        .setEnableRecvScheduling(true)
-                        .setInferShapes(true)
-                )
-                .build());
+        s = createNewSession(g);
     }
 
     @Override
     public DetectionResult detectObjectsOn(BufferedImage image, Predicate<Detected> includeInResult) {
 
-        //var i = ImageUtils.resizeImage(image, 32, 24);
+      //  var i = ImageUtils.resizeImage(image, 320, 240);
         var i = image;
 
         var decodeJpeg = toDecodeJpeg(i);
@@ -113,7 +93,9 @@ public class FasterRcnnImageAnalyzer extends BaseTensorFlowRunnerFacade implemen
                     if (numDetects <= 0) {
                         log.warn("No detections were found.");
                     } else {
-                        try (var detectionBoxes = (TFloat32) outputTensorMap.get("detection_boxes").orElseThrow(); var detectionScores = (TFloat32) outputTensorMap.get("detection_scores").orElseThrow(); var detectionClasses = (TFloat32) outputTensorMap.get("detection_classes").orElseThrow()) {
+                        try (var detectionBoxes = (TFloat32) outputTensorMap.get("detection_boxes").orElseThrow();
+                             var detectionScores = (TFloat32) outputTensorMap.get("detection_scores").orElseThrow();
+                             var detectionClasses = (TFloat32) outputTensorMap.get("detection_classes").orElseThrow()) {
 
                             for (var n = 0; n < numDetects; n++) {
                                 var detectionScore = detectionScores.getFloat(0, n);
@@ -153,7 +135,6 @@ public class FasterRcnnImageAnalyzer extends BaseTensorFlowRunnerFacade implemen
         var constant = o.constant(tString);
 
         var options = DecodeJpeg
-
                 .channels(3L)
                 //  .ratio(128L)
                 ;
@@ -170,7 +151,12 @@ public class FasterRcnnImageAnalyzer extends BaseTensorFlowRunnerFacade implemen
 
     @Override
     public void close() {
+        super.close();
+
         try {
+            model.close();
+           // model.session().close();
+          //  model.graph().close();
             s.close();
             g.close();
             model.close();

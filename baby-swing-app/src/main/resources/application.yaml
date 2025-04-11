@@ -9,6 +9,8 @@ logging:
 
 
 baby-phone:
+  sound-source: linein
+  sound-analyzer: yamnet
 
   rtsp-stream:
     host: 192.168.1.247

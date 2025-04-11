@@ -20,7 +20,6 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -35,27 +34,24 @@ public class MainFrame extends JFrame {
 
     private final transient MainController controller;
     private final transient AtomicReference<Image> image = new AtomicReference<>();
-    private final JPanel display = new JPanel() {
+    private final JPanel displayImage = new JPanel() {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             var i = image.get();
             if (i != null) {
-                g.drawImage(i, 0, 0, getWidth(), getHeight(), this);
-                log.debug("Image displayed with dimensions: {}x{}", getWidth(), getHeight());
-            } else {
-                log.debug("No image to display.");
+                g.drawImage(i, 0, 0, i.getWidth(this), i.getHeight(this), this);
             }
         }
     };
     private final JLabel[] detecteds = new JLabel[10];
-    private JLabel fps;
+    private JLabel latency;
     private transient Detected highlight;
     private transient BufferedImage soundImage;
     private final JPanel soundImagePanel = new JPanel() {
         @Override
-        public void paint(Graphics g) {
-            super.paint(g);
+        public void paintComponent(Graphics g) {
+            super.paintComponent(g);
 
             if (soundImage != null) {
                 g.drawImage(soundImage, 0, 0, getWidth(), getHeight(), this);
@@ -95,17 +91,17 @@ public class MainFrame extends JFrame {
                 });
             }
 
-            display.setMinimumSize(new Dimension(640, 480));
-            display.setPreferredSize(new Dimension(640, 480));
+            displayImage.setMinimumSize(new Dimension(640, 480));
+            displayImage.setPreferredSize(new Dimension(640, 480));
             setTitle("Smart Babyphone");
             var contentPane = getContentPane();
             contentPane.setLayout(new BorderLayout(10, 10));
-            contentPane.add(display, BorderLayout.CENTER);
+            contentPane.add(displayImage, BorderLayout.CENTER);
             var eastPane = new JPanel();
             eastPane.setLayout(new BoxLayout(eastPane, BoxLayout.Y_AXIS));
 
-            fps = new JLabel("Latency: ?");
-            eastPane.add(wrap(fps));
+            latency = new JLabel("Latency: ?");
+            eastPane.add(wrap(latency));
             log.debug("FPS label initialized.");
 
             var sel = new JComboBox<>();
@@ -269,15 +265,18 @@ public class MainFrame extends JFrame {
         return null;
     }
 
-    public void setFps(Long x) {
-        SwingUtilities.invokeLater(() -> fps.setText("Latency: " + x + "ms"));
+    public void setLatency(Long x) {
+        SwingUtilities.invokeLater(() -> latency.setText("Latency: " + x + "ms"));
     }
 
     public void receiveSound(DetectionResult x) {
         x.matched()
                 .forEach(xx ->
-                        Objects.requireNonNull(getNamedChild(this.getContentPane(), xx.type(), JProgressBar.class))
-                                .setValue((int) (xx.score() * 100))
+                        {
+                            var xxx = getNamedChild(this.getContentPane(), xx.type(), JProgressBar.class);
+                            if (xxx != null)
+                                xxx.setValue((int) (xx.score() * 100));
+                        }
                 );
 
         soundImage = x.getImage();

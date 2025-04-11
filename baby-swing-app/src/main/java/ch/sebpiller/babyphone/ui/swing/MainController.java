@@ -54,7 +54,7 @@ public class MainController {
 
     @Getter
     @Setter
-    private float confidencyThreshold = 0.8f;
+    private float confidencyThreshold = 0.3f;
 
     @Getter
     @Setter

@@ -34,6 +34,10 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>baby-samples-data</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
     </dependencies>
 
 
