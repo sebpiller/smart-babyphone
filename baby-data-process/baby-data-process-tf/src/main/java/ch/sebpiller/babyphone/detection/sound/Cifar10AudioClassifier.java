@@ -25,7 +25,7 @@ import java.util.function.Predicate;
 @Slf4j
 @Service
 @AutoLog
-public class Cifar10AudioClassifier extends BaseTensorFlowRunnerFacade implements Closeable, SoundAnalyzer {
+public class Cifar10AudioClassifier extends BaseTensorFlowRunnerFacade implements AutoCloseable, Closeable, SoundAnalyzer {
 
 
     public static final String MODELS = "/home/seb/models";

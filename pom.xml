@@ -84,6 +84,38 @@
                     </configuration>
                 </plugin>
 
+                <plugin>
+                    <groupId>org.openapitools</groupId>
+                    <artifactId>openapi-generator-maven-plugin</artifactId>
+                    <version>7.12.0</version>
+
+                    <configuration>
+                        <generatorName>spring</generatorName>
+                        <generateSupportingFiles>false</generateSupportingFiles>
+                        <generateApis>true</generateApis>
+                        <generateApiTests>false</generateApiTests>
+                        <generateSupportingFiles>false</generateSupportingFiles>
+                        <apiPackage>ch.sebpiller.babyphone.api</apiPackage>
+                        <modelPackage>ch.sebpiller.babyphone.domain</modelPackage>
+                        <output>${project.basedir}/target/generated-sources/</output>
+                        <configOptions>
+                            <javaVersion>${java.version}</javaVersion>
+                            <useJakartaEe>true</useJakartaEe>
+                            <useSpringBoot3>true</useSpringBoot3>
+                            <useTags>true</useTags>
+                            <dateLibrary>java11</dateLibrary>
+                            <interfaceOnly>true</interfaceOnly>
+                            <additionalModelTypeAnnotations>
+                                @lombok.experimental.SuperBuilder @lombok.NoArgsConstructor @lombok.AllArgsConstructor
+                                @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+                            </additionalModelTypeAnnotations>
+                            <openApiNullable>false</openApiNullable>
+                            <skipDefaultInterface>true</skipDefaultInterface>
+                        </configOptions>
+                    </configuration>
+
+                </plugin>
+
             </plugins>
         </pluginManagement>
 
@@ -178,6 +210,11 @@
                 <groupId>com.github.axet</groupId>
                 <artifactId>TarsosDSP</artifactId>
                 <version>2.4-1</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-annotations</artifactId>
+                <version>2.2.25</version>
             </dependency>
             <!-- ===== END OF GENERAL TOOLING =========================== -->
 

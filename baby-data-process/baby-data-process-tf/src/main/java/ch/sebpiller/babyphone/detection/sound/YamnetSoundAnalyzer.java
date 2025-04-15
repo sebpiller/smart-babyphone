@@ -15,6 +15,7 @@ import org.tensorflow.types.TFloat32;
 
 import javax.sound.sampled.AudioFormat;
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ import java.util.function.Predicate;
 @Slf4j
 @Service
 @AutoLog
-public class YamnetSoundAnalyzer extends BaseTensorFlowRunnerFacade implements SoundAnalyzer {
+public class YamnetSoundAnalyzer extends BaseTensorFlowRunnerFacade implements SoundAnalyzer, Closeable, AutoCloseable {
 
     public static final String MODELS = "/home/seb/models";
     public static final String HIGH_RES = MODELS + "/yamnet-tensorflow2-yamnet-v1";

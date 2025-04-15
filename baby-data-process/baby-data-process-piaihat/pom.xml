@@ -12,7 +12,7 @@
     <artifactId>baby-data-process-piaihat</artifactId>
     <dependencies>
         <dependency>
-            <groupId>ch.sebpiller.babyphone</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>baby-data-process-api</artifactId>
         </dependency>
     </dependencies>

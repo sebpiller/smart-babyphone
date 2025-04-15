@@ -1,0 +1,37 @@
+openapi: 3.0.3
+info:
+  title: Sound API
+  description: An API to perform sound-related operations.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/v1
+    description: Local
+paths:
+  /analyze:
+    post:
+      summary: Analyze a sound and return detection results
+      tags:
+        - Sound
+      responses:
+        '200':
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '500':
+          description: Internal Server Error
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string

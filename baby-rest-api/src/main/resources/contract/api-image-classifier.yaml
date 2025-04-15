@@ -1,0 +1,61 @@
+openapi: 3.0.3
+info:
+  title: Sample API
+  description: A sample API to demonstrate OpenAPI YAML definition.
+  version: 1.0.0
+servers:
+  - url: https://api.sample.com/v1
+    description: Production server
+  - url: https://api-staging.sample.com/v1
+    description: Staging server
+paths:
+  /users:
+    get:
+      summary: Retrieve a list of users
+      operationId: getUsers
+      tags:
+        - Users
+      responses:
+        '200':
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '500':
+          description: Internal Server Error
+  /users/{userId}:
+    get:
+      summary: Retrieve a user by ID
+      operationId: getUserById
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string

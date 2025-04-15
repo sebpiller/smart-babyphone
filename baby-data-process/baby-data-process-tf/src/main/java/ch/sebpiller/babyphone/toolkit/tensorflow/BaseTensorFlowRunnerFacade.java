@@ -37,16 +37,27 @@ public abstract class BaseTensorFlowRunnerFacade implements Closeable, AutoClose
     @Override
     public void close() {
         log.debug("Closing TensorFlow session");
-        if (session != null)
-            session.close();
-        if (graph != null)
-            graph.close();
+        if (session != null) {
+            try {
+                session.close();
+            } catch (Exception e) {
+                log.error("Failed to close TensorFlow session", e);
+            }
+        }
+
+        if (graph != null) {
+            try {
+                graph.close();
+            } catch (Exception e) {
+                log.error("Failed to close TensorFlow graph", e);
+            }
+        }
     }
 
 
     @NotNull
     protected Session createNewSession(Graph g) {
-        ConfigProto configProto = ConfigProto.getDefaultInstance().toBuilder()
+        var configProto = ConfigProto.getDefaultInstance().toBuilder()
                 .setAllowSoftPlacement(true)
                 .setLogDevicePlacement(true)
                 .setUsePerSessionThreads(true)

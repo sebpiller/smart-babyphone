@@ -7,6 +7,14 @@ logging:
     root: info
     ch.sebpiller: debug
 
+toolkit:
+  autolog:
+    entering: false
+    print-args: true
+    print-result: true
+    warn-slow-calls: false
+    measure-exec-time: false
+
 
 baby-phone:
   sound-source: linein
@@ -66,3 +74,4 @@ baby-phone:
   #      file: /haarcascades/haarcascade_russian_plate_number.xml
   #    - name: license-plate
   #      file: /haarcascades/haarcascade_license_plate_rus_16stages.xml
+

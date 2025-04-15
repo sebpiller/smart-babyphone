@@ -4,7 +4,6 @@ import ch.sebpiller.babyphone.fetch.image.ImageSource;
 import ch.sebpiller.babyphone.ui.swing.MainController;
 import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
