@@ -1,19 +1,49 @@
 spring:
   application:
     name: BabyphoneApp
+    description: Smart baby monitoring application with AI-powered detection
+    contact:
+      name: Sebastien Piller
+      url: https://github.com/sebpiller/smart-babyphone
+
+info:
+  build:
+    artifact: baby-swing-app
+    name: '@project.name@'
+    description: '@project.description@'
+    version: '@project.version@'
+    timestamp: '@maven.build.timestamp@'
+
+  git:
+    branch: '@git.branch@'
+    commit:
+      id: '@git.commit.id@'
+      time: '@git.commit.time@'
+      message: '@git.commit.message.short@'
+      user: '@git.commit.user.name@'
+
+  env:
+    java:
+      vendor: ${java.vendor}
+      version: ${java.version}
+    os:
+      name: ${os.name}
+      version: ${os.version}
+      arch: ${os.arch}
+
+
 
 logging:
+  json-encoded: true
   level:
     root: info
     ch.sebpiller: debug
 
 toolkit:
   autolog:
-    entering: false
+    enabled: true
     print-args: true
     print-result: true
-    warn-slow-calls: false
-    measure-exec-time: false
 
 
 baby-phone:

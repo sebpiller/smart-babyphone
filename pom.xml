@@ -106,8 +106,9 @@
                             <dateLibrary>java11</dateLibrary>
                             <interfaceOnly>true</interfaceOnly>
                             <additionalModelTypeAnnotations>
-                                @lombok.experimental.SuperBuilder @lombok.NoArgsConstructor @lombok.AllArgsConstructor
-                                @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+                                @lombok.experimental.SuperBuilder
+                                @lombok.NoArgsConstructor
+                                @lombok.AllArgsConstructor
                             </additionalModelTypeAnnotations>
                             <openApiNullable>false</openApiNullable>
                             <skipDefaultInterface>true</skipDefaultInterface>
@@ -216,6 +217,7 @@
                 <artifactId>swagger-annotations</artifactId>
                 <version>2.2.25</version>
             </dependency>
+
             <!-- ===== END OF GENERAL TOOLING =========================== -->
 
 

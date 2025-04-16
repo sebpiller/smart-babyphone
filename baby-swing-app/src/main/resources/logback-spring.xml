@@ -6,8 +6,27 @@
         <resetJUL>true</resetJUL>
     </contextListener>
 
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdcKeyName>request-id</includeMdcKeyName>
+            <includeMdcKeyName>user</includeMdcKeyName>
+            <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSS</timestampPattern>
+        </encoder>
+    </appender>
+
+    <springProperty name="json" source="logging.json-encoded" defaultValue="false"/>
+
+    <if condition='property("json").equals("true")'>
+        <then>
+            <property name="appender" value="JSON_CONSOLE"/>
+        </then>
+        <else>
+            <property name="appender" value="CONSOLE"/>
+        </else>
+    </if>
+
     <root>
-        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="${appender:-CONSOLE}"/>
     </root>
 
 </configuration>
