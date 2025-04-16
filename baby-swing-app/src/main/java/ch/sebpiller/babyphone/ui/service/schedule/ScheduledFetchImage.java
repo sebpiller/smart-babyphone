@@ -3,15 +3,17 @@ package ch.sebpiller.babyphone.ui.service.schedule;
 import ch.sebpiller.babyphone.fetch.image.ImageSource;
 import ch.sebpiller.babyphone.ui.swing.MainController;
 import ch.sebpiller.spi.toolkit.aop.AutoLog;
+import ch.sebpiller.spi.toolkit.aop.Mdc;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
-@Service
 @AutoLog
+@Component
+@Mdc
 public class ScheduledFetchImage {
 
     private final ImageSource imageSource;

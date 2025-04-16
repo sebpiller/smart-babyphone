@@ -5,6 +5,7 @@ import ch.sebpiller.babyphone.fetch.sound.SoundSource;
 import ch.sebpiller.babyphone.toolkit.SoundUtils;
 import ch.sebpiller.babyphone.ui.swing.MainController;
 import ch.sebpiller.spi.toolkit.aop.AutoLog;
+import ch.sebpiller.spi.toolkit.aop.Mdc;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @AutoLog
+@Mdc
 public class ScheduledFetchSoundFragment {
 
     private final MainController mainController;

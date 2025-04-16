@@ -34,27 +34,19 @@ public class RtspImageSource implements ImageSource, Closeable, AutoCloseable {
     private double videoFps;
     private long lastGetTime = 0;
 
-    public void reload() {
-        if (this.videoCapture != null) {
-            this.videoCapture.release();
-            this.videoCapture = null;
-        }
-
-        this.videoCapture = newVideoCapture();
-    }
 
     private VideoCapture newVideoCapture() {
-        var videoCapture = new VideoCapture();
-        videoCapture.setExceptionMode(true);
+        var vc = new VideoCapture();
+        vc.setExceptionMode(true);
 
         var rtspUrl = streamProperties.toRtspUrl();
-        videoCapture.open(rtspUrl);
-        if (!videoCapture.isOpened()) {
+        vc.open(rtspUrl);
+        if (!vc.isOpened()) {
             throw new IllegalStateException("Error: unable to open the RTSP stream.");
         }
 
-        videoFps = videoCapture.get(CAP_PROP_FPS);
-        return videoCapture;
+        videoFps = vc.get(CAP_PROP_FPS);
+        return vc;
     }
 
     @Override

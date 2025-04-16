@@ -2,6 +2,7 @@ package ch.sebpiller.babyphone.ui.config;
 
 import ch.sebpiller.babyphone.fetch.rtsp.properties.RtspStreamProperties;
 import ch.sebpiller.babyphone.ui.config.properties.BabyPhoneProperties;
+import ch.sebpiller.spi.toolkit.CopyMdcTaskDecorator;
 import ch.sebpiller.spi.toolkit.aop.AopConfig;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -35,6 +36,7 @@ public class BabyphoneConfiguration {
         s.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
         s.setRemoveOnCancelPolicy(true);
         s.setErrorHandler(TaskUtils.getDefaultErrorHandler(false));
+        s.setTaskDecorator(new CopyMdcTaskDecorator());
         return s;
     }
 

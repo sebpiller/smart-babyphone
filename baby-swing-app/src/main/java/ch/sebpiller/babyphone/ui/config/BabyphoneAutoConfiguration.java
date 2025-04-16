@@ -3,6 +3,7 @@ package ch.sebpiller.babyphone.ui.config;
 import ch.sebpiller.babyphone.fetch.image.ImageSource;
 import ch.sebpiller.babyphone.fetch.sound.SoundSource;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -32,7 +33,9 @@ public class BabyphoneAutoConfiguration {
             Collections.shuffle(xx);
 
             try {
-                return ImageIO.read(xx.getFirst());
+                File first = xx.getFirst();
+                MDC.put("source_image", first.getName());
+                return ImageIO.read(first);
             } catch (IOException e) {
                 throw new IllegalStateException(e);
             }

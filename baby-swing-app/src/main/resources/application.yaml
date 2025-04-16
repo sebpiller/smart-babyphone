@@ -1,11 +1,3 @@
-spring:
-  application:
-    name: BabyphoneApp
-    description: Smart baby monitoring application with AI-powered detection
-    contact:
-      name: Sebastien Piller
-      url: https://github.com/sebpiller/smart-babyphone
-
 info:
   build:
     artifact: baby-swing-app
@@ -30,7 +22,6 @@ info:
       name: ${os.name}
       version: ${os.version}
       arch: ${os.arch}
-
 
 
 logging:

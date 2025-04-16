@@ -4,17 +4,14 @@ import ch.sebpiller.babyphone.detection.DetectionResult;
 import ch.sebpiller.babyphone.detection.ImageAnalyzer;
 import ch.sebpiller.babyphone.detection.SoundAnalyzer;
 import ch.sebpiller.spi.toolkit.aop.AutoLog;
+import ch.sebpiller.spi.toolkit.aop.Mdc;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringApplicationShutdownHandlers;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -30,7 +27,7 @@ import java.util.function.LongConsumer;
 @RequiredArgsConstructor
 @Component
 @Lazy
-@AutoLog
+@AutoLog @Mdc
 public class MainController {
     private final ConfigurableApplicationContext context;
 
@@ -92,11 +89,11 @@ public class MainController {
         fps.accept(stop - start);
     }
 
-    public void receiveRawSound(String name, byte[] raw, AudioFormat format) {
+    public void receiveRawSound(@Mdc.Add String soundName, byte[] raw, AudioFormat format) {
         var start = System.currentTimeMillis();
 
         var x = soundAnalyzer.detectObjectsOn(raw, format, xx -> true);
-        log.info("Detected sound infos: {} is {}", name, x.matched().findFirst().orElse(null));
+        log.info("Detected sound infos: {} is {}", soundName, x.matched().findFirst().orElse(null));
 
         detectedSounds.accept(x);
 
