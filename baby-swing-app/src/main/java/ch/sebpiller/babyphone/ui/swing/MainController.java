@@ -27,7 +27,8 @@ import java.util.function.LongConsumer;
 @RequiredArgsConstructor
 @Component
 @Lazy
-@AutoLog @Mdc
+@AutoLog
+@Mdc
 public class MainController {
     private final ConfigurableApplicationContext context;
 

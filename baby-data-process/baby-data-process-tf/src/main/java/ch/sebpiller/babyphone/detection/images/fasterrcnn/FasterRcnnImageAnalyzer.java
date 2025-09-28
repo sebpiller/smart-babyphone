@@ -178,8 +178,8 @@ public class FasterRcnnImageAnalyzer implements ImageAnalyzer, Closeable, AutoCl
 
         public static final String MODELS = "/home/seb/models";
         public static final String HIGH_RES = MODELS + "/faster_rcnn_inception_resnet_v2_1024x1024";
-        public static final String LOW_RES = MODELS + "/faster-rcnn-inception-resnet-v2-tensorflow2-640x640-v1";
         public static final String MODEL_PATH = HIGH_RES;
+        public static final String LOW_RES = MODELS + "/faster-rcnn-inception-resnet-v2-tensorflow2-640x640-v1";
         //public static final String MODEL_PATH = LOW_RES;
         @Builder.Default
         private boolean useGpu = false;

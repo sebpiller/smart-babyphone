@@ -3,7 +3,6 @@ package ch.sebpiller.babyphone.detection.mobilenetv2;
 import ch.sebpiller.testing.dataset.TestDataProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 

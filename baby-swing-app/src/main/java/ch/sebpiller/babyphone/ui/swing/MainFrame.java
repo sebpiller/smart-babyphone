@@ -13,10 +13,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,6 +45,7 @@ public class MainFrame extends JFrame {
         }
     };
     private final JLabel[] detecteds = new JLabel[10];
+    private final RtspSoundMonitor rtspSoundMonitor;
     private JLabel latency;
     private transient Detected highlight;
     private transient BufferedImage soundImage;
@@ -61,9 +63,6 @@ public class MainFrame extends JFrame {
 
         }
     };
-
-
-    private final RtspSoundMonitor rtspSoundMonitor;
 
     @SneakyThrows
     @PostConstruct

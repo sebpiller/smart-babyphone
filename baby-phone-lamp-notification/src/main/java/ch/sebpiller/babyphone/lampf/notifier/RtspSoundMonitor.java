@@ -32,27 +32,36 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class RtspSoundMonitor {
 
-    private final RtspStreamProperties rtspStreamProperties;
-
-    private  int threshold = 50;
     public static final int MIN_BLINKING_GAP = 5_000;
     private static final int BUFFERIZE_FRAMES = 8;
-    private Consumer<Double> c;
-    private boolean over;
-    private boolean notifyLamp = true;
-
-
-    public void addListener(Consumer<Double> c) {
-        this.c = c;
-    }
-
-    private long grabStart;
 
     static {
         // Conseillé pour flux RTSP à faible latence
         avutil.av_log_set_level(avutil.AV_LOG_WARNING);
         //avutil.av_log_set_level(avutil.AV_LOG_INFO);
         avformat.avformat_network_init();
+    }
+
+    private final RtspStreamProperties rtspStreamProperties;
+    private int threshold = 50;
+    private Consumer<Double> c;
+    private boolean over;
+    private boolean notifyLamp = true;
+    private long grabStart;
+
+    // Méthode fournie par vous (pour PCM16 little-endian) si vous travaillez avec byte[]
+    public static double calculateRMS(byte[] audioBuffer) {
+        var sum = 0L;
+        for (var i = 0; i < audioBuffer.length; i += 2) {
+            var sample = (audioBuffer[i + 1] << 8) | (audioBuffer[i] & 0xff);
+            sum += sample * (long) sample;
+        }
+        var mean = sum / (audioBuffer.length / 2.0);
+        return Math.sqrt(mean);
+    }
+
+    public void addListener(Consumer<Double> c) {
+        this.c = c;
     }
 
     public void stop() {
@@ -67,6 +76,19 @@ public class RtspSoundMonitor {
         var rtspUrl = rtspStreamProperties.toRtspUrl();
 
         runThread(rtspUrl, lamp);
+    }
+
+    private static SmartLampFacade initBluetoothLamp() {
+        var config = LukeRoberts.LampF.Config.getDefaultConfig();
+
+        if (System.getProperty("lamp.f.mac") != null) {
+            config.setMac(System.getProperty("lamp.f.mac"));
+        }
+
+        var lamp = new LampFBle(config);
+        lamp.setBrightness((byte) 0);      //  lamp.setScene(LukeRoberts.LampF.Scene.INDIRECT_SCENE.getId());
+
+        return lamp;
     }
 
     private void runThread(String rtspUrl, SmartLampFacade lamp) {
@@ -170,35 +192,6 @@ public class RtspSoundMonitor {
         return grabber;
     }
 
-    private FFmpegFrameGrabber getFFmpegFrameGrabber(String rtspUrl) throws FFmpegFrameGrabber.Exception {
-        var grabber = new FFmpegFrameGrabber(rtspUrl);
-        grabber.setOption("rtsp_transport", "tcp");           // ou "udp" selon votre caméra/réseau
-        grabber.setOption("stimeout", String.valueOf(TimeUnit.SECONDS.toMicros(5))); // timeout socket
-        grabber.setOption("reorder_queue_size", "0");
-        grabber.setOption("fflags", "nobuffer");
-        grabber.setOption("flags", "low_delay");
-        grabber.setOption("max_delay", "100");
-        grabber.setOption("probesize", String.valueOf((64 * 1024)));
-        grabber.setOption("analyzeduration", "0");
-
-        grabStart = System.currentTimeMillis();
-        grabber.start();
-        return grabber;
-    }
-
-    private static SmartLampFacade initBluetoothLamp() {
-        var config = LukeRoberts.LampF.Config.getDefaultConfig();
-
-        if (System.getProperty("lamp.f.mac") != null) {
-            config.setMac(System.getProperty("lamp.f.mac"));
-        }
-
-        var lamp = new LampFBle(config);
-        lamp.setBrightness((byte) 0);      //  lamp.setScene(LukeRoberts.LampF.Scene.INDIRECT_SCENE.getId());
-
-        return lamp;
-    }
-
     private static double computeRms(Frame frame) {
         // Gestion des formats audio courants: S16 interleaved et FLT/FLTP
         Object[] samples = frame.samples;
@@ -268,13 +261,20 @@ public class RtspSoundMonitor {
         return 0.0;
     }
 
-    private static double rmsShortInterleaved(short[] data) {
-        var sum = 0L;
-        for (var s : data) {
-            sum += (long) s * s;
-        }
-        var mean = sum / Math.max(1D, data.length);
-        return Math.sqrt(mean);
+    private FFmpegFrameGrabber getFFmpegFrameGrabber(String rtspUrl) throws FFmpegFrameGrabber.Exception {
+        var grabber = new FFmpegFrameGrabber(rtspUrl);
+        grabber.setOption("rtsp_transport", "tcp");           // ou "udp" selon votre caméra/réseau
+        grabber.setOption("stimeout", String.valueOf(TimeUnit.SECONDS.toMicros(5))); // timeout socket
+        grabber.setOption("reorder_queue_size", "0");
+        grabber.setOption("fflags", "nobuffer");
+        grabber.setOption("flags", "low_delay");
+        grabber.setOption("max_delay", "100");
+        grabber.setOption("probesize", String.valueOf((64 * 1024)));
+        grabber.setOption("analyzeduration", "0");
+
+        grabStart = System.currentTimeMillis();
+        grabber.start();
+        return grabber;
     }
 
     private static double rmsFloatInterleaved(float[] data) {
@@ -287,14 +287,12 @@ public class RtspSoundMonitor {
         return Math.sqrt(mean);
     }
 
-    // Méthode fournie par vous (pour PCM16 little-endian) si vous travaillez avec byte[]
-    public static double calculateRMS(byte[] audioBuffer) {
+    private static double rmsShortInterleaved(short[] data) {
         var sum = 0L;
-        for (var i = 0; i < audioBuffer.length; i += 2) {
-            var sample = (audioBuffer[i + 1] << 8) | (audioBuffer[i] & 0xff);
-            sum += sample * (long) sample;
+        for (var s : data) {
+            sum += (long) s * s;
         }
-        var mean = sum / (audioBuffer.length / 2.0);
+        var mean = sum / Math.max(1D, data.length);
         return Math.sqrt(mean);
     }
 

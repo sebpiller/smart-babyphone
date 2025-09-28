@@ -1,10 +1,8 @@
 package ch.sebpiller.babyphone.ui;
 
-import ch.sebpiller.babyphone.ui.config.BabyphoneAutoConfiguration;
 import ch.sebpiller.babyphone.ui.config.BabyphoneConfiguration;
 import ch.sebpiller.babyphone.ui.swing.MainController;
 import ch.sebpiller.babyphone.ui.swing.MainFrame;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Import;

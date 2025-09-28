@@ -3,7 +3,6 @@ package ch.sebpiller.babyphone.detection.sound;
 import ch.sebpiller.babyphone.detection.Detected;
 import ch.sebpiller.babyphone.detection.DetectionResult;
 import ch.sebpiller.babyphone.detection.SoundAnalyzer;
-
 import ch.sebpiller.babyphone.toolkit.ImageUtils;
 import ch.sebpiller.babyphone.toolkit.sound.MelSpectrogram;
 import ch.sebpiller.babyphone.toolkit.tensorflow.BaseTensorFlowRunnerFacade;
@@ -17,7 +16,6 @@ import org.tensorflow.types.TFloat32;
 
 import javax.sound.sampled.AudioFormat;
 import java.awt.image.BufferedImage;
-import java.io.Closeable;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.function.Predicate;

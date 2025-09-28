@@ -52,15 +52,15 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>baby-data-process-opencv</artifactId>
         </dependency>
-<!--        -->
-<!--        <dependency>-->
-<!--            <groupId>${project.groupId}</groupId>-->
-<!--            <artifactId>baby-data-process-tf</artifactId>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>${project.groupId}</groupId>-->
-<!--            <artifactId>baby-data-process-piaihat</artifactId>-->
-<!--        </dependency>-->
+        <!--        -->
+        <!--        <dependency>-->
+        <!--            <groupId>${project.groupId}</groupId>-->
+        <!--            <artifactId>baby-data-process-tf</artifactId>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>${project.groupId}</groupId>-->
+        <!--            <artifactId>baby-data-process-piaihat</artifactId>-->
+        <!--        </dependency>-->
 
         <!-- JSON LOGGING-->
         <dependency>

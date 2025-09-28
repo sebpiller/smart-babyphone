@@ -42,7 +42,7 @@ public class BabyphoneConfiguration {
     }
 
     @Bean
-    RtspSoundMonitor soundMonitor(RtspStreamProperties p){
+    RtspSoundMonitor soundMonitor(RtspStreamProperties p) {
         return new RtspSoundMonitor(p);
     }
 

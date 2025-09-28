@@ -8,7 +8,6 @@ import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -135,7 +134,6 @@ public class MobileNetV2ImageClassifier implements ImageAnalyzer, Closeable, Aut
         log.info("Execution time for model invocation: {} ms", (endTime - startTime));
         return result;
     }
-
 
 
     @Override

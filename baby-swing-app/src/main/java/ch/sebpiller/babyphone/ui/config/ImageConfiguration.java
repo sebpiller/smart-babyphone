@@ -1,14 +1,10 @@
 package ch.sebpiller.babyphone.ui.config;
 
-import ch.sebpiller.babyphone.detection.DetectionResult;
-import ch.sebpiller.babyphone.detection.ImageAnalyzer;
-import ch.sebpiller.babyphone.detection.SoundAnalyzer;
 import ch.sebpiller.babyphone.fetch.image.ImageSource;
 import ch.sebpiller.babyphone.fetch.rtsp.RtspImageSource;
 import ch.sebpiller.babyphone.fetch.rtsp.properties.RtspStreamProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

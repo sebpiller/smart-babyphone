@@ -42,6 +42,16 @@ public class YamnetSoundAnalyzer extends BaseTensorFlowRunnerFacade implements S
 
     }
 
+    private Object[] loadCsvFromClasspath(String filename) {
+        try (var inputStream = getClass().getClassLoader().getResourceAsStream(filename);
+             var reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(inputStream)))) {
+            return reader.lines().toArray();
+        } catch (Exception e) {
+            log.error("Failed to load CSV file: {}", filename, e);
+            throw new IllegalStateException("Could not load CSV file", e);
+        }
+    }
+
     @SneakyThrows
     @Override
     public DetectionResult detectObjectsOn(byte[] sound, AudioFormat format, Predicate<Detected> includeInResult) {
@@ -89,16 +99,6 @@ public class YamnetSoundAnalyzer extends BaseTensorFlowRunnerFacade implements S
 
     private TFloat32 preprocessSoundData(float[] sound) {
         return TFloat32.vectorOf(sound);
-    }
-
-    private Object[] loadCsvFromClasspath(String filename) {
-        try (var inputStream = getClass().getClassLoader().getResourceAsStream(filename);
-             var reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(inputStream)))) {
-            return reader.lines().toArray();
-        } catch (Exception e) {
-            log.error("Failed to load CSV file: {}", filename, e);
-            throw new IllegalStateException("Could not load CSV file", e);
-        }
     }
 }
 

@@ -21,16 +21,14 @@ public class TestDataProvider {
     // ----
     public static final String ALL_IMAGES = FQCN + "#findAvailableImages";
     public static final String JPEG = FQCN + "#findJpegs";
-
+    public static final String ALL_SOUNDS = FQCN + "#findAvailableAudios";
     // ----
     private static final Predicate<Path> JPEGS = withExts("jpg", "jpeg");
     private static final Predicate<Path> BMP = withExts("bmp");
     private static final Predicate<Path> PNG = withExts("png");
     private static final Predicate<Path> GIF = withExts("gif");
-    private static final Predicate<Path> IMAGES = JPEGS.or(BMP).or(PNG).or(GIF);
     // ----
-
-    public static final String ALL_SOUNDS = FQCN + "#findAvailableAudios";
+    private static final Predicate<Path> IMAGES = JPEGS.or(BMP).or(PNG).or(GIF);
 
     @SuppressWarnings("unused")
     @SneakyThrows
@@ -39,32 +37,6 @@ public class TestDataProvider {
                 .map(x -> {
                     try {
                         return Arguments.of(x.getFileName().toString(), ImageIO.read(x.toFile()));
-                    } catch (IOException e) {
-                        throw new IllegalStateException(e);
-                    }
-                });
-    }
-
-    @SuppressWarnings("unused")
-    @SneakyThrows
-    public static Stream<Arguments> findJpegs() {
-        return listClasspathFiles("/samples", true, IMAGES)
-                .map(x -> {
-                    try {
-                        return Arguments.of(x.getFileName().toString(), ImageIO.read(x.toFile()));
-                    } catch (IOException e) {
-                        throw new IllegalStateException(e);
-                    }
-                });
-    }
-
-    @SuppressWarnings("unused")
-    @SneakyThrows
-    public static Stream<Arguments> findAvailableAudios() {
-        return listClasspathFiles("/samples/sounds", false, x -> true)
-                .map(x -> {
-                    try {
-                        return Arguments.of(x.getFileName().toString(), new AudioInputStream(x.toUri().toURL().openStream(), new AudioFormat(44100, 16, 1, true, true), -1));
                     } catch (IOException e) {
                         throw new IllegalStateException(e);
                     }
@@ -96,6 +68,32 @@ public class TestDataProvider {
         } catch (IOException | URISyntaxException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @SuppressWarnings("unused")
+    @SneakyThrows
+    public static Stream<Arguments> findJpegs() {
+        return listClasspathFiles("/samples", true, IMAGES)
+                .map(x -> {
+                    try {
+                        return Arguments.of(x.getFileName().toString(), ImageIO.read(x.toFile()));
+                    } catch (IOException e) {
+                        throw new IllegalStateException(e);
+                    }
+                });
+    }
+
+    @SuppressWarnings("unused")
+    @SneakyThrows
+    public static Stream<Arguments> findAvailableAudios() {
+        return listClasspathFiles("/samples/sounds", false, x -> true)
+                .map(x -> {
+                    try {
+                        return Arguments.of(x.getFileName().toString(), new AudioInputStream(x.toUri().toURL().openStream(), new AudioFormat(44100, 16, 1, true, true), -1));
+                    } catch (IOException e) {
+                        throw new IllegalStateException(e);
+                    }
+                });
     }
 
     private static Predicate<Path> withExts(String... exts) {

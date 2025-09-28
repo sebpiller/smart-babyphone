@@ -34,21 +34,6 @@ public class RtspImageSource implements ImageSource, Closeable, AutoCloseable {
     private double videoFps;
     private long lastGetTime = 0;
 
-
-    private VideoCapture newVideoCapture() {
-        var vc = new VideoCapture();
-        vc.setExceptionMode(true);
-
-        var rtspUrl = streamProperties.toRtspUrl();
-        vc.open(rtspUrl);
-        if (!vc.isOpened()) {
-            throw new IllegalStateException("Error: unable to open the RTSP stream.");
-        }
-
-        videoFps = vc.get(CAP_PROP_FPS);
-        return vc;
-    }
-
     @Override
     public BufferedImage get() {
         skipFramesIfNeeded();
@@ -99,6 +84,20 @@ public class RtspImageSource implements ImageSource, Closeable, AutoCloseable {
                 log.warn("An error occurred while skipping frames: {}", String.valueOf(e));
             }
         }
+    }
+
+    private VideoCapture newVideoCapture() {
+        var vc = new VideoCapture();
+        vc.setExceptionMode(true);
+
+        var rtspUrl = streamProperties.toRtspUrl();
+        vc.open(rtspUrl);
+        if (!vc.isOpened()) {
+            throw new IllegalStateException("Error: unable to open the RTSP stream.");
+        }
+
+        videoFps = vc.get(CAP_PROP_FPS);
+        return vc;
     }
 
     @Override
