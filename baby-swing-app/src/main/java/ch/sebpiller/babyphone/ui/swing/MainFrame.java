@@ -3,6 +3,7 @@ package ch.sebpiller.babyphone.ui.swing;
 import ch.sebpiller.babyphone.detection.Detected;
 import ch.sebpiller.babyphone.detection.DetectionResult;
 import ch.sebpiller.babyphone.detection.ImageAnalyzer;
+import ch.sebpiller.babyphone.lampf.notifier.RtspSoundMonitor;
 import ch.sebpiller.spi.toolkit.aop.AutoLog;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -12,18 +13,16 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static ch.sebpiller.babyphone.detection.sound.ResNetV2AudioClassifier.LABELS;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -62,6 +61,9 @@ public class MainFrame extends JFrame {
 
         }
     };
+
+
+    private final RtspSoundMonitor rtspSoundMonitor;
 
     @SneakyThrows
     @PostConstruct
@@ -205,19 +207,37 @@ public class MainFrame extends JFrame {
         p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
         p.add(Box.createHorizontalGlue());
 
-        for (var l : LABELS) {
-            var pp = new JPanel();
-            pp.setLayout(new BorderLayout());
-            pp.add(new JLabel(l), BorderLayout.SOUTH);
-            JProgressBar comp = new JProgressBar(SwingConstants.VERTICAL);
-            comp.setName(l);
-            comp.setPreferredSize(new Dimension(10, 100));
-            comp.setStringPainted(true);
-            comp.setMaximum(100);
-            pp.add(comp, BorderLayout.CENTER);
+        JCheckBox soundDetection = new JCheckBox("notify noise in the LampF");
+        soundDetection.setSelected(true);
+        soundDetection.addActionListener(e -> rtspSoundMonitor.setNotifyLamp(soundDetection.isSelected()));
+        p.add(soundDetection);
 
-            p.add(pp);
-        }
+        p.add(Box.createHorizontalGlue());
+
+        p.add(new JLabel("Seuil: "));
+        JSlider comp = new JSlider(SwingConstants.VERTICAL, 0, 100, 50);
+        comp.addChangeListener(e -> rtspSoundMonitor.setThreshold(comp.getValue()));
+        p.add(comp);
+
+        JProgressBar jProgressBar = new JProgressBar(SwingConstants.VERTICAL, 0, 100);
+        jProgressBar.setStringPainted(true);
+        p.add(jProgressBar);
+        rtspSoundMonitor.addListener(x -> jProgressBar.setValue((x.intValue())));
+
+//
+//        for (var l : LABELS) {
+//            var pp = new JPanel();
+//            pp.setLayout(new BorderLayout());
+//            pp.add(new JLabel(l), BorderLayout.SOUTH);
+//            JProgressBar comp = new JProgressBar(SwingConstants.VERTICAL);
+//            comp.setName(l);
+//            comp.setPreferredSize(new Dimension(10, 100));
+//            comp.setStringPainted(true);
+//            comp.setMaximum(100);
+//            pp.add(comp, BorderLayout.CENTER);
+//
+//            p.add(pp);
+//        }
 
         soundImagePanel.setPreferredSize(new Dimension(320, 240));
         p.add(soundImagePanel);

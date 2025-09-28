@@ -1,7 +1,7 @@
 package ch.sebpiller.babyphone.toolkit.tensorflow;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.tensorflow.Graph;
 import org.tensorflow.Session;
 import org.tensorflow.op.Ops;

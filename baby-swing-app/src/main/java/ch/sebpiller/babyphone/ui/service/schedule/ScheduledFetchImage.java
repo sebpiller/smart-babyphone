@@ -19,7 +19,7 @@ public class ScheduledFetchImage {
     private final ImageSource imageSource;
     private final MainController mainController;
 
-    @Scheduled(initialDelay = 5_000, fixedRate = 5000, timeUnit = TimeUnit.MILLISECONDS, scheduler = "taskScheduler")
+    @Scheduled(initialDelay = 5_000, fixedRate = 30, timeUnit = TimeUnit.MILLISECONDS, scheduler = "taskScheduler")
     public void captureNextImage() {
         mainController.receiveRawImage(imageSource.get());
     }

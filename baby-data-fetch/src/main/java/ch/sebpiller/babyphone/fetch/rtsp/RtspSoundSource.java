@@ -1,5 +1,6 @@
 package ch.sebpiller.babyphone.fetch.rtsp;
 
+import ch.sebpiller.babyphone.fetch.rtsp.properties.RtspStreamProperties;
 import ch.sebpiller.babyphone.fetch.sound.SoundSource;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -16,6 +17,8 @@ import java.time.Duration;
 @Service
 @RequiredArgsConstructor
 public class RtspSoundSource implements SoundSource {
+    private final RtspStreamProperties streamProperties;
+
     @SneakyThrows
     @Override
     public byte[] captureClip(Duration duration, AudioFormat format) {

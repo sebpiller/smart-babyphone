@@ -1,13 +1,13 @@
 package ch.sebpiller.babyphone.ui.config;
 
+import ch.sebpiller.babyphone.detection.DetectionResult;
 import ch.sebpiller.babyphone.detection.SoundAnalyzer;
-import ch.sebpiller.babyphone.detection.sound.Cifar10AudioClassifier;
-import ch.sebpiller.babyphone.detection.sound.ResNetV2AudioClassifier;
-import ch.sebpiller.babyphone.detection.sound.YamnetSoundAnalyzer;
-import ch.sebpiller.babyphone.fetch.sound.LineInSoundSource;
+import ch.sebpiller.babyphone.fetch.rtsp.RtspSoundSource;
+import ch.sebpiller.babyphone.fetch.rtsp.properties.RtspStreamProperties;
 import ch.sebpiller.babyphone.fetch.sound.SoundSource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,36 +17,51 @@ public class SoundConfiguration {
 
 
     @Bean
-    SoundSource lineInSoundSource() {
-        log.info("Creating line in sound source");
-        return new LineInSoundSource();
+    @ConditionalOnBean(RtspStreamProperties.class)
+    SoundSource defaultSoundSource(RtspStreamProperties p) {
+        return new RtspSoundSource(p);
     }
 
+
 //    @Bean
-//    @ConditionalOnBean(RtspStreamProperties.class)
-//    SoundSource defaultSoundSource(RtspStreamProperties p) {
-//        return new RtspSoundSource();
+//    @ConditionalOnProperty(name = "babyphone.sound-analyzer", havingValue = "cifar")
+//    SoundAnalyzer cifarSoundAnalyzer() {
+//        log.info("Creating cifar sound analyzer");
+//        return new Cifar10AudioClassifier();
+//    }
+//
+//    @Bean
+//    @ConditionalOnProperty(name = "babyphone.sound-analyzer", havingValue = "yamnet")
+//    SoundAnalyzer yamnetSoundAnalyzer() {
+//        log.info("Creating yamnet sound analyzer");
+//        return new YamnetSoundAnalyzer();
+//    }
+//
+//    @Bean
+//    @ConditionalOnProperty(name = "babyphone.sound-analyzer", havingValue = "resnet")
+//    SoundAnalyzer resNetV2AudioClassifier() {
+//        log.info("Creating resnet sound analyzer");
+//        return new ResNetV2AudioClassifier();
+//    }
+
+
+//
+//    @Bean
+//    SoundSource lineInSoundSource() {
+//        log.info("Creating line in sound source");
+//        return new LineInSoundSource();
 //    }
 
     @Bean
-    @ConditionalOnProperty(name = "babyphone.sound-analyzer", havingValue = "cifar")
-    SoundAnalyzer cifarSoundAnalyzer() {
-        log.info("Creating cifar sound analyzer");
-        return new Cifar10AudioClassifier();
+    @ConditionalOnMissingBean(SoundSource.class)
+    SoundSource noopSoundSource() {
+        return (duration, format) -> new byte[0];
     }
 
     @Bean
-    @ConditionalOnProperty(name = "babyphone.sound-analyzer", havingValue = "yamnet")
-    SoundAnalyzer yamnetSoundAnalyzer() {
-        log.info("Creating yamnet sound analyzer");
-        return new YamnetSoundAnalyzer();
-    }
-
-    @Bean
-    @ConditionalOnProperty(name = "babyphone.sound-analyzer", havingValue = "resnet")
-    SoundAnalyzer resNetV2AudioClassifier() {
-        log.info("Creating resnet sound analyzer");
-        return new ResNetV2AudioClassifier();
+    @ConditionalOnMissingBean(SoundAnalyzer.class)
+    SoundAnalyzer noopSoundAnalyzer() {
+        return (sound, format, includeInResult) -> DetectionResult.builder().build();
     }
 
 }

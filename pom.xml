@@ -20,6 +20,7 @@
         <module>baby-data-process</module>
         <module>baby-rest-api</module>
         <module>baby-swing-app</module>
+        <module>baby-phone-lamp-notification</module>
     </modules>
 
     <properties>
@@ -30,15 +31,15 @@
         <maven.compiler.debug>true</maven.compiler.debug>
 
         <!-- ===== PLUGINS VERSIONS =================-->
-        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
-        <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
+        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.5.1</maven-surefire-plugin.version>
         <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
 
         <!-- ===== DEPENDENCIES VERSIONS ============-->
-        <spring-boot.version>3.4.4</spring-boot.version>
-        <lombok.version>1.18.38</lombok.version>
+        <spring-boot.version>3.5.4</spring-boot.version>
+        <lombok.version>1.18.42</lombok.version>
         <toolkit-spi.version>1.0-SNAPSHOT</toolkit-spi.version>
-        <javacv.version>1.5.8</javacv.version>
+        <javacv.version>1.5.12</javacv.version>
         <tensorflow.version>1.0.0</tensorflow.version>
     </properties>
 
@@ -209,6 +210,11 @@
                 <artifactId>baby-data-process-piaihat</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>baby-phone-lamp-notification</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <!-- ===== END OF MODULES DEPENDENCIES ====================== -->
 
 
@@ -223,7 +229,7 @@
             <dependency>
                 <groupId>net.logstash.logback</groupId>
                 <artifactId>logstash-logback-encoder</artifactId>
-                <version>8.0</version>
+                <version>8.1</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.janino</groupId>
@@ -246,7 +252,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-csv</artifactId>
-                <version>1.14.0</version>
+                <version>1.14.1</version>
             </dependency>
             <dependency>
                 <groupId>com.github.axet</groupId>
@@ -256,7 +262,7 @@
             <dependency>
                 <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-annotations</artifactId>
-                <version>2.2.25</version>
+                <version>2.2.37</version>
             </dependency>
 
             <!-- ===== END OF GENERAL TOOLING =========================== -->

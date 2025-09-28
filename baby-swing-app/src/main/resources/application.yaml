@@ -38,13 +38,11 @@ toolkit:
 
 
 baby-phone:
-  sound-source: linein
-  sound-analyzer: yamnet
 
   rtsp-stream:
     host: 192.168.1.247
     #path: /h265Preview_01_sub
-    path: /h265Preview_01_main
+    path: /Preview_01_main
     user: admin
     pass: adminadmin1234
 

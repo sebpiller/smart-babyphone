@@ -41,16 +41,26 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>baby-phone-lamp-notification</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv-platform</artifactId>
+            <version>1.5.11</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>baby-data-process-opencv</artifactId>
         </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>baby-data-process-tf</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>baby-data-process-piaihat</artifactId>
-        </dependency>
+<!--        -->
+<!--        <dependency>-->
+<!--            <groupId>${project.groupId}</groupId>-->
+<!--            <artifactId>baby-data-process-tf</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>${project.groupId}</groupId>-->
+<!--            <artifactId>baby-data-process-piaihat</artifactId>-->
+<!--        </dependency>-->
 
         <!-- JSON LOGGING-->
         <dependency>
@@ -67,6 +77,10 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>baby-samples-data</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.sebpiller.babyphone</groupId>
+            <artifactId>baby-data-process-toolkit</artifactId>
         </dependency>
 
     </dependencies>

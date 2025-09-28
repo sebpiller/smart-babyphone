@@ -3,9 +3,12 @@ package ch.sebpiller.babyphone.fetch.rtsp.properties;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 @Data
-@ConfigurationProperties(prefix = "rtsp-stream")
+@Configuration
+@ConfigurationProperties(prefix = "baby-phone.rtsp-stream")
 public class RtspStreamProperties {
     @NotEmpty
     private String host;
